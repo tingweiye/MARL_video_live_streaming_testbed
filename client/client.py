@@ -351,5 +351,6 @@ if __name__ == "__main__":
     parser.add_argument('--algo', default='stallion', type=str, help='ABR algorithm')
     args = parser.parse_args()
     delete_files_in_folder('data')
+    print(args.ip)
     client = Client(args.ip, args.port, args.algo)
     client.run()
