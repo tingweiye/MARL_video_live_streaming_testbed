@@ -4,6 +4,7 @@ import queue
 from algorithms.stallion import stallion_solver
 import threading
 import sys
+import argparse
 sys.path.append("..")
 import os
 print(os.getcwd())
@@ -344,6 +345,11 @@ class Client:
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Streaming client')
+    parser.add_argument('--ip', default='127.0.0.1', type=str, help='ip')
+    parser.add_argument('--port', default='8080', type=str, help='port')
+    parser.add_argument('--algo', default='stallion', type=str, help='ABR algorithm')
+    args = parser.parse_args()
     delete_files_in_folder('data')
-    client = Client('127.0.0.1', 8080, 'stallion')
+    client = Client(args.ip, args.port, args.algo)
     client.run()
