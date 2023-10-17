@@ -198,7 +198,6 @@ class Client:
                 self.frame_time *= ratio[0]
             else:
                 self.frame_time *= ratio[1]
-            print(t1)
         
     
     """
@@ -308,7 +307,6 @@ class Client:
         # push to buffer
         self.buffer.put(download_seg_info(self.last_gop, rate))
         # buffer_len = self.get_buffer_size()
-        print(f"Jump: {passive_jump}")
         Logger.log(f"Client {self.client_idx} downloaded segment {self.last_gop} at rate {rate}")
         # update data
         self.rate_his.append(rate)
