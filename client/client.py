@@ -10,9 +10,7 @@ import os
 print(os.getcwd())
 
 from utils.config import Config
-from utils.utils import (convert_timestamp, 
-                         delete_files_in_folder,
-                         Logger)
+from utils.utils import *
 
 class download_seg_info:
     
@@ -67,8 +65,10 @@ class Client:
         self.freeze_his = []
         self.latency_his = []
         self.download_time_his = []
+        self.rate_his = []
         self.bw_his = []
         self.jump_his = []
+        self.server_time_his = []
         
         self.test = time.time()
         year, month, day, hours, minutes, seconds, milliseconds = convert_timestamp(time.time())
@@ -245,7 +245,7 @@ class Client:
             self.last_gop = self.next_gop
             passive_jump = suggestion - self.last_gop - 1
             self.next_gop = suggestion
-            return latency, suggestion, prepare, passive_jump
+            return latency, suggestion, prepare, passive_jump, server_time
         else:
             connection.close()
             # print(f"Failed to download. Status code: {response.status}")
@@ -271,8 +271,8 @@ class Client:
         
         # get the next gop and calculate the download time
         download_start = time.time()
-        time.sleep(6) # simulate congestion
-        latency, suggestion, prepare, passive_jump = self.__request_video_seg(rate)
+        # time.sleep(6) # simulate congestion
+        latency, suggestion, prepare, passive_jump, server_time = self.__request_video_seg(rate)
         download_end = time.time()
         self.download_time = download_end - download_start - prepare
         
@@ -311,6 +311,8 @@ class Client:
         print(f"Jump: {passive_jump}")
         Logger.log(f"Client {self.client_idx} downloaded segment {self.last_gop} at rate {rate}")
         # update data
+        self.rate_his.append(rate)
+        self.server_time_his.append(server_time)
         self.update_data()
         
     def update_data(self):
@@ -331,6 +333,7 @@ class Client:
             self.download_time_his.pop(0)
             self.bw_his.pop(0)
             self.freeze_his.pop(0)
+            self.server_time_his.pop(0)
 
         self.freeze = 0
         # self.rtt = 0.0
@@ -343,11 +346,17 @@ class Client:
     Client data record methods
     """
         
-        
     def run(self):
         self.register()
         self.start()
         for i in range(5000):
+            if i % 300 == 0 and i != 0:
+                save_as_csv(self.server_time_his, self.rate_his, f"rate_t_{i}")
+                save_as_csv(self.server_time_his, self.bw_his, f"bw_t_{i}")
+                save_as_csv(self.server_time_his, self.idle_his, f"idle_t_{i}")
+                save_as_csv(self.server_time_his, self.freeze_his, f"freeze_t_{i}")
+                save_as_csv(self.server_time_his, self.buffer_his, f"buffer_t_{i}")
+                
             self.download()
         self.exit()
 

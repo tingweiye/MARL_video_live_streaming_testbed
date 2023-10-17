@@ -14,7 +14,7 @@ class Config:
     INITIAL_RATE = 3.0
     INITIAL_LATENCY = 1.5
     CLIENT_MAX_BUFFER_LEN = 5
-    MAX_HISTORY = 15
+    MAX_HISTORY = 10000
     
     # server
     ENCODING_TIME = 1.0

@@ -1,4 +1,6 @@
 from datetime import datetime, timedelta
+import pandas as pd
+from config import Config
 import time
 import os
 
@@ -19,6 +21,11 @@ def convert_timestamp(timestamp):
 
 def diff(timestamp1, timestamp2):
     return timestamp2 - timestamp1
+
+def save_as_csv(server_time_his, data, filename, name='data'):
+    df = pd.DataFrame({'time': server_time_his, name: data})
+    # Save DataFrame to a CSV file
+    df.to_csv('results/' + filename, index=False)
 
 class Logger:
     
