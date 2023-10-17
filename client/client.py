@@ -36,8 +36,6 @@ class Client:
         self.base_get_url = '/videoServer/download'
         self.client_idx = -1
         self.get_next_lock = threading.Lock()
-        self.data_lock = threading.Lock()
-        self.requests_not_empty = threading.Event()
         self.buffer_not_empty = threading.Event()
         self.buffer_not_full = threading.Event()
         self.freeze_avialable = threading.Event()
@@ -49,17 +47,19 @@ class Client:
         self.first_gop = 0
         self.next_gop = 0
         self.last_gop = 0
+        self.frame_time = 1 / Config.FPS
+        self.play_speed = 1
         # self.current_gop = 0
         
         self.buffer = queue.Queue(Config.CLIENT_MAX_BUFFER_LEN)
-        self.requests = queue.Queue()
         self.rtt = 0.0
         self.idle = 0
         self.freeze = 0
         self.latency = 3.0
         self.download_time = 0
         self.bw = 0 # in Mb/s
-        self.jump_seconds = 0;
+        self.jump_seconds = 0
+        self.seg_left = 1
         
         self.buffer_his = []
         self.rtt_his = []
@@ -133,10 +133,6 @@ class Client:
             self.download_time = download_end - download_start
             # don't record except for bw
             self.bw = Config.INITIAL_RATE / self.download_time
-            
-            # solver customs
-            # if self.algo == 'stallion':
-            #     self.solver.update_bw_latency(self.bw, self.latency)
                 
             # wait until buffer is not full
             if self.buffer.full():
@@ -148,6 +144,9 @@ class Client:
     """
     Define client player methods
     """
+    
+    def get_buffer_size(self):
+        return self.buffer.qsize() + self.seg_left
             
     def __start_play(self):
         self.base_time = time.time()
@@ -161,8 +160,8 @@ class Client:
         Logger.log(f"Client {self.client_idx} start playing")
         self.playing = True
         self.current_playing = -1
+        ratio = (0.99, 1.01)
         while(self.playing):
-            
             # Wait until the buffer is not empty, and calculate freeze time
             ###################### Handling video freezes ######################
             if self.buffer.empty():
@@ -172,30 +171,40 @@ class Client:
                 self.buffer_not_empty.clear()
                 self.buffer_not_empty.wait()
                 freeze_end = time.time()
-                with self.data_lock:
-                    self.freeze = freeze_end - freeze_start
-                # freeze increases latency
-                self.accumulative_latency += self.freeze
-                
+                self.freeze = freeze_end - freeze_start
                 self.freeze_avialable.set()
             ###################### Handling video freezes ######################
             
             seg = self.buffer.get()
-            if (self.current_playing + 1) % self.server_max_idx != seg.idx:
-                # the video has jumped
-                self.base_time = time.time()
-                self.first_gop = seg.idx
-                self.accumulative_latency = 0.0
+            self.seg_left = 1
+            # if self.current_playing + 1 != seg.idx:
+            #     # the video has jumped
+            #     self.base_time = time.time()
+            #     self.first_gop = seg.idx
+            #     self.accumulative_latency = 0.0
+                
             self.current_playing = seg.idx
             # release block for the downloader to put new segments in the buffer
             self.buffer_not_full.set()
             Logger.log(f"Client {self.client_idx} playing segment {seg.idx} at rate {seg.rate}")
+            
             # play for one second
-            time.sleep(Config.SEG_DURATION)
-            # put a download request
-            self.requests.put(req_info(seg.idx, seg.rate))
-            # release block for the downloader to execute new requests
-            self.requests_not_empty.set()
+            # time.sleep(Config.SEG_DURATION)
+            
+            start = time.time()
+            for i in range(Config.FPS):
+                time.sleep(self.frame_time / self.play_speed)
+                self.seg_left -= self.frame_time
+                # Speed != 1 affects latency. Use accumulative_latency to avoid data integrety issue
+                if self.play_speed != 1:
+                    self.accumulative_latency -= (self.play_speed - 1) * (self.frame_time)
+            end = time.time()
+            t1 = end - start
+            if t1 > 1 / self.play_speed:
+                self.frame_time *= ratio[0]
+            else:
+                self.frame_time *= ratio[1]
+            print(t1)
         
     
     """
@@ -229,15 +238,10 @@ class Client:
             server_time = float(response.getheader('Server-Time'))
             suggestion = int(response.getheader('suggestion'))
             prepare = float(response.getheader('Prepare-Time'))
-            
-            # if segment jumps, reset suggestion to 0
-            # if self.next_gop + 1 != suggestion:
-            #     # self.first_gop = suggestion
-            #     self.accumulative_latency = 0.0
-                
+
             # print(f"prepare: {prepare}")
-            print(f"server_time: {server_time}, time_diff: {time.time() - self.base_time}, prepare: {prepare}, buffer_len: {self.buffer.qsize()}")
-            latency = server_time + self.rtt - (time.time() - self.base_time + self.first_gop) + self.accumulative_latency
+            # print(f"server_time: {server_time}, time_diff: {time.time() - self.base_time}, first_gop:{self.first_gop}, prepare: {prepare}, buffer_len: {self.get_buffer_size()}")
+            latency = server_time + self.rtt - (time.time() - self.base_time + self.first_gop)
             # print(f"latency: {latency}")
             with open('data/' + download_filename, 'wb') as local_file:
                 local_file.write(response.read())
@@ -256,16 +260,6 @@ class Client:
     # merchant method putting segs into the buffer
     def download(self):
         print("   ")
-        # Wait until not the requests_buffer is not empty, and calculate idle time
-        ###################### Handling video idles ######################
-        if self.requests.empty():
-            idle_start = time.time()
-            self.requests_not_empty.clear()
-            self.requests_not_empty.wait()
-            idle_end = time.time()
-            self.idle = idle_end - idle_start
-        req = self.requests.get()
-        ###################### Handling video idles ######################
         
         #############################################################################
         ###################### Adaptive flow control Algorithm ######################
@@ -274,7 +268,7 @@ class Client:
         # TODO 
         if self.algo == 'stallion':
             self.solver.update_bw_latency(self.bw, self.latency)
-            rate, _ = self.solver.solve(self.buffer.qsize(), self.latency)
+            rate, _ = self.solver.solve(self.get_buffer_size(), self.latency)
         # rate = 6.0
         #############################################################################
         ###################### Adaptive flow control Algorithm ######################
@@ -287,53 +281,71 @@ class Client:
         download_end = time.time()
         self.download_time = download_end - download_start - prepare
         
-        self.latency = latency
-        self.bw = rate / self.download_time
-        
-        # wait until buffer is not full
-        if self.buffer.full():
-            self.buffer_not_full.clear()
-            self.buffer_not_full.wait()
-        # push to buffer
-        self.buffer.put(download_seg_info(self.last_gop, rate))
-        Logger.log(f"Client {self.client_idx} downloaded segment {self.last_gop} at rate {rate}")
-        
+        ######### get freeze time #########
         # release block for the player to play downloaded segments
         self.buffer_not_empty.set()
         # if the video freezes, wait until it finishes calculating the freeze time
         self.freeze_avialable.wait()
+        
+        ######### get idle time #########
+        self.idle = prepare
+        # wait until buffer is not full
+        full_start = time.time()
+        if self.buffer.full():
+            self.buffer_not_full.clear()
+            self.buffer_not_full.wait()
+        full_end = time.time()
+        self.idle += full_end - full_start
+        
+        ######### get latency #########
+        if self.latency == Config.INITIAL_DUMMY_LATENCY:
+            self.latency = latency
+        else:
+            self.latency += 0 if self.freeze < 0.00001 else self.freeze # add freeze time
+            self.latency += self.accumulative_latency                   # speed correction
+            self.accumulative_latency = 0.0                             # reset speed correction
+            
+        ######### get bandwidth #########
+        self.bw = rate / self.download_time
+        
+        ######### get buffer length #########
+        # push to buffer
+        self.buffer.put(download_seg_info(self.last_gop, rate))
+        # buffer_len = self.get_buffer_size()
+        
+        Logger.log(f"Client {self.client_idx} downloaded segment {self.last_gop} at rate {rate}")
         # update data
         self.update_data()
         
     def update_data(self):
         
-        print(f"Buffer: {self.buffer.qsize()}, Latency: {self.latency:.3f}, idle: {self.idle:.3f}, Freeze: {self.freeze:.3f}, Download time: {self.download_time:.3f}, BW: {self.bw:.3f}")
-        self.buffer_his.append(self.buffer.qsize())
+        print(f"Buffer: {self.get_buffer_size()}, Latency: {self.latency:.3f}, idle: {self.idle:.3f}, Freeze: {self.freeze:.3f}, Download time: {self.download_time:.3f}, BW: {self.bw:.3f}")
+        self.buffer_his.append(self.get_buffer_size())
         # self.rtt_his = [] #TODO
         self.idle_his.append(self.idle)
         self.latency_his.append(self.latency)
         self.download_time_his.append(self.download_time)
         self.bw_his.append(self.bw)
+        self.freeze_his.append(self.freeze)
         
         if len(self.buffer_his) > Config.MAX_HISTORY:
             self.buffer_his.pop(0)
-            self.buffer_his.append(self.buffer.qsize())
-            self.idle_his.append(self.idle)
-            self.latency_his.append(self.latency)
-            self.download_time_his.append(self.download_time)
-            self.bw_his.append(self.bw)
-        
-        # freeze is calculated in player not downloader, so we add a lock
-        with self.data_lock:
-            self.freeze_his.append(self.freeze)
-            self.freeze = 0
-            if len(self.freeze_his) > Config.MAX_HISTORY:
-                self.freeze_his.pop(0)
+            self.idle_his.pop(0)
+            self.latency_his.pop(0)
+            self.download_time_his.pop(0)
+            self.bw_his.pop(0)
+            self.freeze_his.pop(0)
+
+        self.freeze = 0
         # self.rtt = 0.0
         self.idle = 0
         # self.latency = 0
         # self.download_time = 0
         # self.bw = 0
+        
+    """
+    Client data record methods
+    """
         
         
     def run(self):

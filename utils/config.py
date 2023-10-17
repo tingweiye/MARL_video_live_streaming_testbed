@@ -7,8 +7,10 @@ class Config:
     BITRATE = [0.3, 0.5, 1.0, 2.0, 3.0, 6.0]
     SPEED = [0.9, 1.0, 1.1]
     MAX_RATE = BITRATE[-1]
+    FPS = 24
     
     # clients
+    INITIAL_DUMMY_LATENCY = 3.0
     INITIAL_RATE = 3.0
     INITIAL_LATENCY = 1.5
     CLIENT_MAX_BUFFER_LEN = 5
