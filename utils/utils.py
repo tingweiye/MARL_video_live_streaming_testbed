@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 import pandas as pd
-from config import Config
+from utils.config import Config
 import time
 import os
 
