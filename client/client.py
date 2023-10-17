@@ -160,7 +160,7 @@ class Client:
         Logger.log(f"Client {self.client_idx} start playing")
         self.playing = True
         self.current_playing = -1
-        ratio = (0.99, 1.01)
+        ratio = (0.995, 1.005)
         while(self.playing):
             # Wait until the buffer is not empty, and calculate freeze time
             ###################### Handling video freezes ######################
@@ -177,11 +177,6 @@ class Client:
             
             seg = self.buffer.get()
             self.seg_left = 1
-            # if self.current_playing + 1 != seg.idx:
-            #     # the video has jumped
-            #     self.base_time = time.time()
-            #     self.first_gop = seg.idx
-            #     self.accumulative_latency = 0.0
                 
             self.current_playing = seg.idx
             # release block for the downloader to put new segments in the buffer
@@ -190,7 +185,6 @@ class Client:
             
             # play for one second
             # time.sleep(Config.SEG_DURATION)
-            
             start = time.time()
             for i in range(Config.FPS):
                 time.sleep(self.frame_time / self.play_speed)
@@ -277,7 +271,7 @@ class Client:
         
         # get the next gop and calculate the download time
         download_start = time.time()
-        # time.sleep(6) # simulate congestion
+        time.sleep(6) # simulate congestion
         latency, suggestion, prepare, passive_jump = self.__request_video_seg(rate)
         download_end = time.time()
         self.download_time = download_end - download_start - prepare
@@ -314,7 +308,7 @@ class Client:
         # push to buffer
         self.buffer.put(download_seg_info(self.last_gop, rate))
         # buffer_len = self.get_buffer_size()
-        
+        print(f"Jump: {passive_jump}")
         Logger.log(f"Client {self.client_idx} downloaded segment {self.last_gop} at rate {rate}")
         # update data
         self.update_data()
