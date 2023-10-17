@@ -249,8 +249,9 @@ class Client:
             connection.close()
 
             self.last_gop = self.next_gop
+            passive_jump = suggestion - self.last_gop - 1
             self.next_gop = suggestion
-            return latency, suggestion, prepare
+            return latency, suggestion, prepare, passive_jump
         else:
             connection.close()
             # print(f"Failed to download. Status code: {response.status}")
@@ -277,7 +278,7 @@ class Client:
         # get the next gop and calculate the download time
         download_start = time.time()
         # time.sleep(6) # simulate congestion
-        latency, suggestion, prepare = self.__request_video_seg(rate)
+        latency, suggestion, prepare, passive_jump = self.__request_video_seg(rate)
         download_end = time.time()
         self.download_time = download_end - download_start - prepare
         
@@ -303,6 +304,7 @@ class Client:
         else:
             self.latency += 0 if self.freeze < 0.00001 else self.freeze # add freeze time
             self.latency += self.accumulative_latency                   # speed correction
+            self.latency -= passive_jump                                # latency too high, server forces jump
             self.accumulative_latency = 0.0                             # reset speed correction
             
         ######### get bandwidth #########
