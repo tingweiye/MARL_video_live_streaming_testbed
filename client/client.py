@@ -347,11 +347,13 @@ class Client:
     def run(self):
         self.register()
         self.start()
-        for i in range(5000):
+        for i in range(650):
             if i % 300 == 0 and i != 0:
+                Logger.log("Experinment data saved to results.")
+                save_as_csv(self.server_time_his, self.latency_his, f"latency_t_{i}")
                 save_as_csv(self.server_time_his, self.rate_his, f"rate_t_{i}")
                 save_as_csv(self.server_time_his, self.bw_his, f"bw_t_{i}")
-                save_as_csv(self.server_time_his, self.idle_his, f"idle_t_{i}")
+                # save_as_csv(self.server_time_his, self.idle_his, f"idle_t_{i}")
                 save_as_csv(self.server_time_his, self.freeze_his, f"freeze_t_{i}")
                 save_as_csv(self.server_time_his, self.buffer_his, f"buffer_t_{i}")
                 
