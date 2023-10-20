@@ -25,7 +25,7 @@ def download_video(request, video_filename):
     client_idx = int(request.META.get('HTTP_IDX'))
     request_gop = int(request.META.get('HTTP_GOP'))
     request_rate = float(request.META.get('HTTP_RATE'))
-    # print(f"Requested client: {client_idx}, gop: {request_gop}, rate: {request_rate}")
+    print(f"Requested client: {client_idx}, gop: {request_gop}, rate: {request_rate}")
     
     suggestion, video_filename, prepare = server.process_request(request_gop, request_rate)
     video_path = os.path.join(os.getcwd(), "data/"+video_filename)

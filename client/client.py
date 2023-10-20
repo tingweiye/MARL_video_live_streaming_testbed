@@ -140,6 +140,7 @@ class Client:
                 self.buffer_not_full.wait()
             # push to buffer
             self.buffer.put(download_seg_info(self.last_gop, Config.INITIAL_RATE))
+            self.buffer_not_empty.set()
             
     """
     Define client player methods
