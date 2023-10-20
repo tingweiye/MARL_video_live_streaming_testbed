@@ -140,6 +140,7 @@ class Client:
                 self.buffer_not_full.wait()
             # push to buffer
             self.buffer.put(download_seg_info(self.last_gop, Config.INITIAL_RATE))
+            print(f"Buffer: {self.get_buffer_size()}, Latency: {self.latency:.3f}, idle: {self.idle:.3f}, Freeze: {self.freeze:.3f}, Download time: {self.download_time:.3f}, BW: {self.bw:.3f}")
             self.buffer_not_empty.set()
             
     """
@@ -150,10 +151,10 @@ class Client:
         return self.buffer.qsize() + self.seg_left
             
     def __start_play(self):
-        self.base_time = time.time()
         # start a thread executing a local video player simulator
         self.player = threading.Thread(target=self.play)
         self.player.start()
+        self.base_time = time.time()
         
             
     # Customer method getting segs out of the buffer
@@ -167,9 +168,9 @@ class Client:
             ###################### Handling video freezes ######################
             if self.buffer.empty():
                 self.freeze_avialable.clear()
-                
-                freeze_start = time.time()
+                self.seg_left = 0
                 self.buffer_not_empty.clear()
+                freeze_start = time.time()
                 self.buffer_not_empty.wait()
                 freeze_end = time.time()
                 self.freeze = freeze_end - freeze_start
@@ -348,7 +349,7 @@ class Client:
     def run(self):
         self.register()
         self.start()
-        for i in range(1250):
+        for i in range(610):
             if i % 300 == 0 and i != 0:
                 Logger.log("Experinment data saved to results.")
                 save_as_csv(self.server_time_his, self.latency_his, f"latency_t_{i}")
@@ -367,6 +368,8 @@ if __name__ == "__main__":
     parser.add_argument('--ip', default='127.0.0.1', type=str, help='ip')
     parser.add_argument('--port', default='8080', type=str, help='port')
     parser.add_argument('--algo', default='stallion', type=str, help='ABR algorithm')
+    parser.add_argument('--sleep', default=0, type=float, help='Wait time')
     args = parser.parse_args()
+    time.sleep(args.sleep)
     client = Client(args.ip, args.port, args.algo)
     client.run()
