@@ -240,8 +240,10 @@ class Client:
             # print(f"server_time: {server_time}, time_diff: {time.time() - self.base_time}, first_gop:{self.first_gop}, prepare: {prepare}, buffer_len: {self.get_buffer_size()}")
             latency = server_time + self.rtt - (time.time() - self.base_time + self.first_gop)
             # print(f"latency: {latency}")
+            t1 = time.time()
             with open('data/' + download_filename, 'wb') as local_file:
                 local_file.write(response.read())
+            t2 = time.time()
             # print(f"Downloaded {download_filename}")
             connection.close()
 
@@ -249,7 +251,7 @@ class Client:
             passive_jump = suggestion - self.last_gop - 1
             self.next_gop = suggestion
             ee = time.time()
-            print(f"Connection: {ce - cs} Request: {s - ce} Real download: {e - s} Get file: {ee - e}")
+            print(f"Connection: {ce - cs} Request: {s - ce} Real download: {e - s} Get file: {t2 - t1} Later: {ee - e}")
             return latency, suggestion, prepare, passive_jump, server_time
         else:
             connection.close()
@@ -375,5 +377,6 @@ if __name__ == "__main__":
     parser.add_argument('--sleep', default=0, type=float, help='Wait time')
     args = parser.parse_args()
     time.sleep(args.sleep)
+    delete_files_in_folder('data/')
     client = Client(args.ip, args.port, args.algo)
     client.run()
