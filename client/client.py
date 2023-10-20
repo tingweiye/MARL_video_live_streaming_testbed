@@ -347,7 +347,7 @@ class Client:
     def run(self):
         self.register()
         self.start()
-        for i in range(650):
+        for i in range(1250):
             if i % 300 == 0 and i != 0:
                 Logger.log("Experinment data saved to results.")
                 save_as_csv(self.server_time_his, self.latency_his, f"latency_t_{i}")
