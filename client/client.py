@@ -57,7 +57,7 @@ class Client:
         self.download_time = 0
         self.bw = 0 # in Mb/s
         self.jump_seconds = 0
-        self.seg_left = 1
+        self.seg_left = 0
         
         self.buffer_his = []
         self.rtt_his = []
@@ -217,15 +217,17 @@ class Client:
         headers = {'idx': str(self.client_idx),
                    'gop': str(self.next_gop),
                    'rate': str(rate)}
+        cs = time.time()
         # Create an HTTP connection to the server
         connection = http.client.HTTPConnection(self.server_host, self.server_port)
-
+        ce = time.time()
         # Send an HTTP GET request to the download URL
         connection.request('GET', download_url, headers=headers)
 
+        s = time.time()
         # Get the response from the server
         response = connection.getresponse()
-
+        e = time.time()
         # Check if the response status code indicates success (e.g., 200 for OK)
         if response.status == 200:
             # Read and save the downloaded content to a local file
@@ -246,6 +248,8 @@ class Client:
             self.last_gop = self.next_gop
             passive_jump = suggestion - self.last_gop - 1
             self.next_gop = suggestion
+            ee = time.time()
+            print(f"Connection: {ce - cs} Request: {s - ce} Real download: {e - s} Get file: {ee - e}")
             return latency, suggestion, prepare, passive_jump, server_time
         else:
             connection.close()
