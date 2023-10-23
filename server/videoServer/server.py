@@ -129,7 +129,7 @@ class LiveEncoder(threading.Thread):
                 pass
             self.high += 1
 
-            print(self.low, self.high, self.get_server_time())
+            # print(self.low, self.high, self.get_server_time())
             
 
 class client_info:

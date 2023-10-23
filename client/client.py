@@ -140,7 +140,7 @@ class Client:
                 self.buffer_not_full.wait()
             # push to buffer
             self.buffer.put(download_seg_info(self.last_gop, Config.INITIAL_RATE))
-            print(f"Buffer: {self.get_buffer_size()}, Latency: {self.latency:.3f}, idle: {self.idle:.3f}, Freeze: {self.freeze:.3f}, Download time: {self.download_time:.3f}, BW: {self.bw:.3f}")
+            print(f"Buffer: {self.get_buffer_size():.3f}, Latency: {self.latency:.3f}, idle: {self.idle:.3f}, Freeze: {self.freeze:.3f}, Download time: {self.download_time:.3f}, BW: {self.bw:.3f}")
             self.buffer_not_empty.set()
             
     """
@@ -318,7 +318,7 @@ class Client:
         
     def update_data(self):
         
-        print(f"Buffer: {self.get_buffer_size()}, Latency: {self.latency:.3f}, idle: {self.idle:.3f}, Freeze: {self.freeze:.3f}, Download time: {self.download_time:.3f}, BW: {self.bw:.3f}")
+        print(f"Buffer: {self.get_buffer_size():.3f}, Latency: {self.latency:.3f}, idle: {self.idle:.3f}, Freeze: {self.freeze:.3f}, Download time: {self.download_time:.3f}, BW: {self.bw:.3f}")
         self.buffer_his.append(self.get_buffer_size())
         # self.rtt_his = [] #TODO
         self.idle_his.append(self.idle)
