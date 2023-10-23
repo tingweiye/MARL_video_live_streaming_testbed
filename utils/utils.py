@@ -43,6 +43,8 @@ def delete_files_in_folder(folder_path):
 
     # Iterate over the files and delete each one
     for file_name in files:
+        if file_name == '.gitkeep':
+            continue
         file_path = os.path.join(folder_path, file_name)
         try:
             if os.path.isfile(file_path):
