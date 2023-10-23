@@ -50,7 +50,7 @@ class Client:
         # self.current_gop = 0
         
         self.buffer = queue.Queue(Config.CLIENT_MAX_BUFFER_LEN)
-        self.rtt = 0.0
+        self.rtt = 0.01
         self.idle = 0
         self.freeze = 0
         self.latency = 3.0
@@ -149,6 +149,9 @@ class Client:
     
     def get_buffer_size(self):
         return self.buffer.qsize() + self.seg_left
+    
+    def current_play_seconds(self):
+        return self.current_playing + Config.SEG_DURATION - self.seg_left
             
     def __start_play(self):
         # start a thread executing a local video player simulator
@@ -188,15 +191,16 @@ class Client:
             # play for one second
             # time.sleep(Config.SEG_DURATION)
             start = time.time()
-            for i in range(Config.FPS):
+            for i in range(int(Config.SEG_DURATION * Config.FPS)):
                 time.sleep(self.frame_time / self.play_speed)
-                self.seg_left -= self.frame_time
+                self.seg_left -= self.frame_time#Config.FRAME_DURATION
                 # Speed != 1 affects latency. Use accumulative_latency to avoid data integrety issue
                 if self.play_speed != 1:
                     self.accumulative_latency -= (self.play_speed - 1) * (self.frame_time)
             end = time.time()
             t1 = end - start
-            if t1 > 1 / self.play_speed:
+            print(t1, self.frame_time)
+            if t1 > Config.SEG_DURATION / self.play_speed:
                 self.frame_time *= ratio[0]
             else:
                 self.frame_time *= ratio[1]
@@ -217,17 +221,13 @@ class Client:
         headers = {'idx': str(self.client_idx),
                    'gop': str(self.next_gop),
                    'rate': str(rate)}
-        cs = time.time()
         # Create an HTTP connection to the server
         connection = http.client.HTTPConnection(self.server_host, self.server_port)
-        ce = time.time()
         # Send an HTTP GET request to the download URL
         connection.request('GET', download_url, headers=headers)
 
-        s = time.time()
         # Get the response from the server
         response = connection.getresponse()
-        e = time.time()
         # Check if the response status code indicates success (e.g., 200 for OK)
         if response.status == 200:
             # Read and save the downloaded content to a local file
@@ -236,23 +236,16 @@ class Client:
             suggestion = int(response.getheader('suggestion'))
             prepare = float(response.getheader('Prepare-Time'))
 
-            # print(f"prepare: {prepare}")
-            # print(f"server_time: {server_time}, time_diff: {time.time() - self.base_time}, first_gop:{self.first_gop}, prepare: {prepare}, buffer_len: {self.get_buffer_size()}")
-            latency = server_time + self.rtt - (time.time() - self.base_time + self.first_gop)
-            # print(f"latency: {latency}")
             t1 = time.time()
             with open('data/' + download_filename, 'wb') as local_file:
                 local_file.write(response.read())
-            t2 = time.time()
             # print(f"Downloaded {download_filename}")
             connection.close()
 
             self.last_gop = self.next_gop
             passive_jump = suggestion - self.last_gop - 1
             self.next_gop = suggestion
-            ee = time.time()
-            print(f"Connection: {ce - cs} Request: {s - ce} Real download: {e - s} Get file: {t2 - t1} Later: {ee - e}")
-            return latency, suggestion, prepare, passive_jump, server_time
+            return suggestion, prepare, passive_jump, server_time
         else:
             connection.close()
             # print(f"Failed to download. Status code: {response.status}")
@@ -279,7 +272,7 @@ class Client:
         # get the next gop and calculate the download time
         download_start = time.time()
         # time.sleep(6) # simulate congestion
-        latency, suggestion, prepare, passive_jump, server_time = self.__request_video_seg(rate)
+        suggestion, prepare, passive_jump, server_time = self.__request_video_seg(rate)
         download_end = time.time()
         self.download_time = download_end - download_start - prepare
         
@@ -300,13 +293,15 @@ class Client:
         self.idle += full_end - full_start
         
         ######### get latency #########
-        if self.latency == Config.INITIAL_DUMMY_LATENCY:
-            self.latency = latency
-        else:
-            self.latency += 0 if self.freeze < 0.00001 else self.freeze # add freeze time
-            self.latency += self.accumulative_latency                   # speed correction
-            self.latency -= passive_jump                                # latency too high, server forces jump
-            self.accumulative_latency = 0.0                             # reset speed correction
+        # if self.latency == Config.INITIAL_DUMMY_LATENCY:
+        #     self.latency = latency
+        # else:
+        #     self.latency += 0 if self.freeze < 0.00001 else self.freeze # add freeze time
+        #     self.latency += self.accumulative_latency                   # speed correction
+        #     self.latency -= passive_jump                                # latency too high, server forces jump
+        #     self.accumulative_latency = 0.0                             # reset speed correction
+        print(f"Server time: {server_time}, current: {self.current_play_seconds()}")
+        self.latency = server_time - self.current_play_seconds()
             
         ######### get bandwidth #########
         self.bw = rate / self.download_time

@@ -8,6 +8,7 @@ class Config:
     SPEED = [0.9, 1.0, 1.1]
     MAX_RATE = BITRATE[-1]
     FPS = 24
+    FRAME_DURATION = 1 / 24
     
     # clients
     INITIAL_DUMMY_LATENCY = 3.0
@@ -17,7 +18,7 @@ class Config:
     MAX_HISTORY = 10000
     
     # server
-    ENCODING_TIME = 1.0
+    ENCODING_TIME = 1
     PUSEDO_ENCODE_TIME = ENCODING_TIME
     SERVER_MAX_BUFFER_LEN = 5
     SEG_NUM = 10

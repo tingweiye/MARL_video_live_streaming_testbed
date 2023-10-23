@@ -1,8 +1,6 @@
 import os
 print(os.getcwd())
 path = "../data"
-file = os.path.join(path, 'test.mp4')
-print(file)
 
 for idx in range(600):
     for rate in [0.3, 0.5, 1.0, 2.0, 3.0, 6.0]:

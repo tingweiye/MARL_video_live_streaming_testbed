@@ -1,2 +1,4 @@
 client.sh
 server.sh
+**/*.mp4
+**/*.csv
