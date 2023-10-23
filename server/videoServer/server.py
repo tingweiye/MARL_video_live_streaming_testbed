@@ -121,7 +121,6 @@ class LiveEncoder(threading.Thread):
         Logger.log("Server encoder started")
         while self.running:
             # dynamic control
-            start = time.time()
             self.pesudo_encode(self.high + 1)
             if self.high - self.low + 2 > Config.SERVER_MAX_BUFFER_LEN:
                 self.low += 1
@@ -129,10 +128,8 @@ class LiveEncoder(threading.Thread):
             while int(self.get_server_time()) == self.high + 1:
                 pass
             self.high += 1
-            end = time.time()
-            
-            elapsed = end - start
-            # print(self.low, self.high, self.get_server_time())
+
+            print(self.low, self.high, self.get_server_time())
             
 
 class client_info:
