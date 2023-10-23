@@ -12,6 +12,7 @@ class Server:
     def __init__(self, algo=None):
         
         # client info
+        self.first_time = True
         self.client_num = 0
         self.max_client_num = 100
         self.client_list = {}
@@ -30,6 +31,9 @@ class Server:
             return -1
         new_idx = self.max_idx
         client = client_info(new_idx)
+        if self.first_time:
+            time.sleep(1)
+            self.first_time = False
         self.client_list[new_idx] = client
         self.max_idx += 1 
         self.client_num += 1

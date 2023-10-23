@@ -77,6 +77,8 @@ class Client:
         if algo == 'stallion':
             self.algo = algo
             self.solver = stallion_solver(Config.INITIAL_LATENCY)
+            
+        self.connection = http.client.HTTPConnection(self.server_host, self.server_port)
     
     """
     Define client registry and exit methods
@@ -84,11 +86,11 @@ class Client:
     
     # register to the server when first connected to it
     def register(self):
-        connection = http.client.HTTPConnection(self.server_host, self.server_port)
+        # connection = http.client.HTTPConnection(self.server_host, self.server_port)
         
-        connection.request('GET', self.base_register_url)
+        self.connection.request('GET', self.base_register_url)
         
-        response = connection.getresponse()
+        response = self.connection.getresponse()
         if response.status == 200:
             self.client_idx = int(response.getheader('idx'))
             self.next_gop = int(response.getheader('next'))
@@ -98,24 +100,24 @@ class Client:
             print(f"Client {self.client_idx} successfully connected to the server {self.server_host}:{self.server_port}")
         else:
             print(f"Client failed to connected to the server {self.server_host}:{self.server_port}")
-        connection.close()
+        # connection.close()
             
     def exit(self):
         self.playing = False
         
-        connection = http.client.HTTPConnection(self.server_host, self.server_port)
+        # connection = http.client.HTTPConnection(self.server_host, self.server_port)
         
         headers = {'idx': self.client_idx}
         
-        connection.request('GET', self.base_exit_url, headers=headers)
+        self.connection.request('GET', self.base_exit_url, headers=headers)
         
-        response = connection.getresponse()
+        response = self.connection.getresponse()
         if response.status == 200:
             
             print(f"Client {self.client_idx} successfully exited from the server {self.server_host}:{self.server_port}")
         else:
             print(f"Client failed to exited from the server {self.server_host}:{self.server_port}")
-        connection.close()
+        self.connection.close()
 
     
         
@@ -222,12 +224,12 @@ class Client:
                    'gop': str(self.next_gop),
                    'rate': str(rate)}
         # Create an HTTP connection to the server
-        connection = http.client.HTTPConnection(self.server_host, self.server_port)
+        # connection = http.client.HTTPConnection(self.server_host, self.server_port)
         # Send an HTTP GET request to the download URL
-        connection.request('GET', download_url, headers=headers)
+        self.connection.request('GET', download_url, headers=headers)
 
         # Get the response from the server
-        response = connection.getresponse()
+        response = self.connection.getresponse()
         # Check if the response status code indicates success (e.g., 200 for OK)
         if response.status == 200:
             # Read and save the downloaded content to a local file
@@ -240,14 +242,14 @@ class Client:
             with open('data/' + download_filename, 'wb') as local_file:
                 local_file.write(response.read())
             # print(f"Downloaded {download_filename}")
-            connection.close()
+            self.connection.close()
 
             self.last_gop = self.next_gop
             passive_jump = suggestion - self.last_gop - 1
             self.next_gop = suggestion
             return suggestion, prepare, passive_jump, server_time
         else:
-            connection.close()
+            self.connection.close()
             # print(f"Failed to download. Status code: {response.status}")
             raise Exception(f"Failed to download. Status code: {response.status}")
 

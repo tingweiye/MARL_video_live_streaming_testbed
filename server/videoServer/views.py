@@ -1,12 +1,13 @@
 from django.http import FileResponse, Http404, HttpResponse
 from django.shortcuts import render, get_object_or_404
-from videoServer.server import Server
 from django.apps import apps
 import threading
 import os
 import time
 import sys
+# from gunicorn_config import server
 sys.path.append("..")
+from videoServer.server import Server
 from utils.utils import Logger
 from utils.config import Config
 
