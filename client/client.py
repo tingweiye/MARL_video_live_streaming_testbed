@@ -214,7 +214,7 @@ class Client:
     # download the requested segment with designated rate and idx in self.next_gop
     def __request_video_seg(self, rate):
         # Define the download URL and filename
-        filename = f'{self.next_gop % Config.SEG_NUM}_{rate:.1f}.mp4'
+        filename = f'{self.next_gop}_{rate:.1f}.mp4'
         download_url = os.path.join(self.base_get_url, filename)  # Replace with the actual URL path
         download_filename = 'd_' + filename  # Replace with the desired local filename
         
