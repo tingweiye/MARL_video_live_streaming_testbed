@@ -124,7 +124,7 @@ class LiveEncoder(threading.Thread):
             self.pesudo_encode(self.high + 1)
             if self.high - self.low + 2 > Config.SERVER_MAX_BUFFER_LEN:
                 self.low += 1
-                self.delete_files(self.low)
+                self.delete_files(self.low - 1)
             while int(self.get_server_time()) == self.high + 1:
                 pass
             self.high += 1
