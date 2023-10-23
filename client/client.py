@@ -226,10 +226,12 @@ class Client:
         # Create an HTTP connection to the server
         # connection = http.client.HTTPConnection(self.server_host, self.server_port)
         # Send an HTTP GET request to the download URL
+        t1 = time.time()
         self.connection.request('GET', download_url, headers=headers)
-
+        t2 = time.time()
         # Get the response from the server
         response = self.connection.getresponse()
+        t3 = time.time()
         # Check if the response status code indicates success (e.g., 200 for OK)
         if response.status == 200:
             # Read and save the downloaded content to a local file
@@ -238,11 +240,12 @@ class Client:
             suggestion = int(response.getheader('suggestion'))
             prepare = float(response.getheader('Prepare-Time'))
 
-            t1 = time.time()
             with open('data/' + download_filename, 'wb') as local_file:
                 local_file.write(response.read())
-            # print(f"Downloaded {download_filename}")
-            self.connection.close()
+            t4 = time.time()
+            
+            print(f"Request: {t2 - t1}, response: {t3 - t2}, download: {t4 - t3}")
+            # self.connection.close()
 
             self.last_gop = self.next_gop
             passive_jump = suggestion - self.last_gop - 1
