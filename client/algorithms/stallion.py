@@ -5,13 +5,6 @@ sys.path.append("..")
 from utils.utils import Logger
 from utils.config import Config
 
-# SEG_DURATION = 1.0
-# ENCODING_TIME = 1.0
-# CHUNK_DURATION = 0.2
-# CHUNK_IN_SEG = SEG_DURATION/CHUNK_DURATION
-# BITRATE = [0.3, 0.5, 1.0, 2.0, 3.0, 6.0]
-# SPEED = [0.9, 1.0, 1.1]
-# MAX_RATE = BITRATE[-1]
 
 class stallion_solver(object):
     def __init__(self, initial_latency):
@@ -19,7 +12,7 @@ class stallion_solver(object):
         self.bw_f = 1.0
         self.latency_f = 1.25
         self.n_step = 10
-        self.target_latency = 3.5
+        self.target_latency = 2.5
         self.speed_buffer_tth = 0.6
         self.bw_history = []
         self.latency_history = []

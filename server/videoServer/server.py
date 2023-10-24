@@ -92,7 +92,7 @@ class LiveEncoder(threading.Thread):
         self.base_time = -1
         
         
-    
+    # Generate dummy rate files on the fly
     def generate_files(self, idx):
         for rate in Config.BITRATE:
             numBytes = rate * 1e6 / 8
@@ -100,8 +100,8 @@ class LiveEncoder(threading.Thread):
             with open(os.path.join(self.path, file_name), 'w') as f:
                 f.write('a' * int(numBytes))
                 
+    # Iterate over the files and delete each one
     def delete_files(self, idx):
-        # Iterate over the files and delete each one
         for rate in Config.BITRATE:
             file_name = str(idx) + '_' + str(rate) + '.mp4'
             file_path = os.path.join(self.path, file_name)
@@ -125,7 +125,6 @@ class LiveEncoder(threading.Thread):
         self.base_time = time.time()
         Logger.log("Server encoder started")
         while self.running:
-            # dynamic control
             self.pesudo_encode(self.high + 1)
             if self.high - self.low + 2 > Config.SERVER_MAX_BUFFER_LEN:
                 self.low += 1

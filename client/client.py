@@ -185,6 +185,7 @@ class Client:
                 self.freeze_avialable.set()
             ###################### Handling video freezes ######################
             
+            start = time.time()
             seg = self.buffer.get()
             self.seg_left = 1
                 
@@ -192,11 +193,9 @@ class Client:
             # release block for the downloader to put new segments in the buffer
             self.buffer_not_full.set()
             Logger.log(f"Client {self.client_idx} playing segment {seg.idx} at rate {seg.rate}")
+
             
-            # play for one second
-            # time.sleep(Config.SEG_DURATION)
-            start = time.time()
-            for i in range(int(Config.SEG_DURATION * Config.FPS)):
+            for _ in range(int(Config.SEG_DURATION * Config.FPS)):
                 time.sleep(self.frame_time / self.play_speed)
                 self.seg_left -= self.frame_time#Config.FRAME_DURATION
                 # Speed != 1 affects latency. Use accumulative_latency to avoid data integrety issue
@@ -204,7 +203,7 @@ class Client:
                     self.accumulative_latency -= (self.play_speed - 1) * (self.frame_time)
             end = time.time()
             t1 = end - start
-            # print(t1, self.frame_time)
+            print(t1, self.frame_time)
             if t1 > Config.SEG_DURATION / self.play_speed:
                 self.frame_time *= ratio[0]
             else:
@@ -248,7 +247,7 @@ class Client:
                 local_file.write(response.content)
             t3 = time.time()
             
-            print(f"Request: {t2 - t1}, response: {t2 - t1}, write: {t3 - t2}")
+            print(f"Request and response: {t2 - t1}, write: {t3 - t2}")
             # self.connection.close()
 
             self.last_gop = self.next_gop
