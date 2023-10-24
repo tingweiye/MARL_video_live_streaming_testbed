@@ -1,4 +1,5 @@
 import http.client
+import requests
 from socket import socket
 import time
 import queue
@@ -30,6 +31,7 @@ class Client:
     def __init__(self, host, port, algo):
         self.server_host = host
         self.server_port = port
+        self.base_url = f'http://{host}:{port}'
         self.base_register_url = '/videoServer/register'
         self.base_exit_url = '/videoServer/exit'
         self.base_get_url = '/videoServer/download'
@@ -79,7 +81,8 @@ class Client:
             self.algo = algo
             self.solver = stallion_solver(Config.INITIAL_LATENCY)
             
-        self.connection = http.client.HTTPConnection(self.server_host, self.server_port)
+        # self.connection = http.client.HTTPConnection(self.server_host, self.server_port)
+        self.connection = requests.Session()
     
     """
     Define client registry and exit methods
@@ -89,35 +92,34 @@ class Client:
     def register(self):
         # connection = http.client.HTTPConnection(self.server_host, self.server_port)
         
-        self.connection.request('POST', self.base_register_url)
+        # self.connection.request('POST', self.base_register_url)
         
-        response = self.connection.getresponse()
-        if response.status == 200:
-            self.client_idx = int(response.getheader('idx'))
-            self.next_gop = int(response.getheader('next'))
-            self.server_max_idx = int(response.getheader('max_idx'))
+        # response = self.connection.getresponse()
+        try:
+            response = self.connection.post(self.base_url + self.base_register_url)
+            response.raise_for_status()
+            
+            self.client_idx = int(response.headers.get('idx'))
+            self.next_gop = int(response.headers.get('next'))
             self.first_gop = self.next_gop
             # self.base_time = time.time() # TODO
             print(f"Client {self.client_idx} successfully connected to the server {self.server_host}:{self.server_port}")
-        else:
+        except:
             print(f"Client failed to connected to the server {self.server_host}:{self.server_port}")
-        # self.connection.sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
-        # connection.close()
+            raise
+            
             
     def exit(self):
         self.playing = False
-        
-        # connection = http.client.HTTPConnection(self.server_host, self.server_port)
-        
         headers = {'idx': self.client_idx}
         
-        self.connection.request('POST', self.base_exit_url, headers=headers)
-        
-        response = self.connection.getresponse()
-        if response.status == 200:
+        try:
+            response = self.connection.post(self.base_url + self.base_exit_url, headers=headers)
+            response.raise_for_status()
             print(f"Client {self.client_idx} successfully exited from the server {self.server_host}:{self.server_port}")
-        else:
+        except:
             print(f"Client failed to exited from the server {self.server_host}:{self.server_port}")
+            raise
         self.connection.close()
 
     
@@ -228,34 +230,35 @@ class Client:
         # connection = http.client.HTTPConnection(self.server_host, self.server_port)
         # Send an HTTP GET request to the download URL
         t1 = time.time()
-        self.connection.request('GET', download_url, headers=headers)
-        t2 = time.time()
-        # Get the response from the server
-        response = self.connection.getresponse()
-        t3 = time.time()
+        # self.connection.request('GET', download_url, headers=headers)
+        
         # Check if the response status code indicates success (e.g., 200 for OK)
-        if response.status == 200:
+        try:
+            response = self.connection.get(self.base_url + download_url, headers=headers)
+            response.raise_for_status()
+            t2 = time.time()
+            
             # Read and save the downloaded content to a local file
             # Get server time and calculate
-            server_time = float(response.getheader('Server-Time'))
-            suggestion = int(response.getheader('suggestion'))
-            prepare = float(response.getheader('Prepare-Time'))
+            server_time = float(response.headers.get('Server-Time'))
+            suggestion = int(response.headers.get('suggestion'))
+            prepare = float(response.headers.get('Prepare-Time'))
 
             with open('data/' + download_filename, 'wb') as local_file:
-                local_file.write(response.read())
-            t4 = time.time()
+                local_file.write(response.content)
+            t3 = time.time()
             
-            print(f"Request: {t2 - t1}, response: {t3 - t2}, download: {t4 - t3}")
+            print(f"Request: {t2 - t1}, response: {t2 - t1}, write: {t3 - t2}")
             # self.connection.close()
 
             self.last_gop = self.next_gop
             passive_jump = suggestion - self.last_gop - 1
             self.next_gop = suggestion
             return suggestion, prepare, passive_jump, server_time
-        else:
+        except:
             self.connection.close()
             # print(f"Failed to download. Status code: {response.status}")
-            raise Exception(f"Failed to download. Status code: {response.status}")
+            raise Exception(f"Failed to download.")
 
         
     # merchant method putting segs into the buffer

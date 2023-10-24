@@ -64,7 +64,6 @@ def client_register(request):
     response = HttpResponse(f"Client {idx} registered")
     response['idx'] = idx
     response['next'] = suggestion
-    response['max_idx'] = Config.SEG_NUM
     return response
 
 # Handle client exits
