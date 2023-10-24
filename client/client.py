@@ -299,15 +299,15 @@ class Client:
         self.idle += full_end - full_start
         
         ######### get latency #########
-        # if self.latency == Config.INITIAL_DUMMY_LATENCY:
-        #     self.latency = latency
-        # else:
-        #     self.latency += 0 if self.freeze < 0.00001 else self.freeze # add freeze time
-        #     self.latency += self.accumulative_latency                   # speed correction
-        #     self.latency -= passive_jump                                # latency too high, server forces jump
-        #     self.accumulative_latency = 0.0                             # reset speed correction
+        if self.latency == Config.INITIAL_DUMMY_LATENCY:
+            self.latency = server_time - self.current_play_seconds() - self.rtt
+        else:
+            self.latency += 0 if self.freeze < 0.00001 else self.freeze # add freeze time
+            self.latency += self.accumulative_latency                   # speed correction
+            self.latency -= passive_jump                                # latency too high, server forces jump
+            self.accumulative_latency = 0.0                             # reset speed correction
         # print(f"Server time: {server_time}, current: {self.current_play_seconds()}")
-        self.latency = server_time - self.current_play_seconds()
+        # self.latency = server_time - self.current_play_seconds() - self.rtt
             
         ######### get bandwidth #########
         self.bw = rate / self.download_time
