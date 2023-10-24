@@ -1,5 +1,7 @@
 from django.http import FileResponse, Http404, HttpResponse
 from django.shortcuts import render, get_object_or_404
+from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_exempt
 from django.apps import apps
 import threading
 import os
@@ -52,6 +54,8 @@ def download_video(request, video_filename):
         raise Http404("Video not found")
     
 # Handle client registry
+@require_POST
+@csrf_exempt
 def client_register(request):
     with shared_register_lock:
         idx, suggestion = server.register_client()
@@ -64,6 +68,8 @@ def client_register(request):
     return response
 
 # Handle client exits
+@require_POST
+@csrf_exempt
 def client_exit(request):
     with shared_register_lock:
         idx = int(request.META.get('HTTP_IDX'))

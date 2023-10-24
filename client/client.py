@@ -1,4 +1,5 @@
 import http.client
+from socket import socket
 import time
 import queue
 from algorithms.stallion import stallion_solver
@@ -88,7 +89,7 @@ class Client:
     def register(self):
         # connection = http.client.HTTPConnection(self.server_host, self.server_port)
         
-        self.connection.request('GET', self.base_register_url)
+        self.connection.request('POST', self.base_register_url)
         
         response = self.connection.getresponse()
         if response.status == 200:
@@ -100,6 +101,7 @@ class Client:
             print(f"Client {self.client_idx} successfully connected to the server {self.server_host}:{self.server_port}")
         else:
             print(f"Client failed to connected to the server {self.server_host}:{self.server_port}")
+        self.connection.sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
         # connection.close()
             
     def exit(self):
@@ -109,11 +111,10 @@ class Client:
         
         headers = {'idx': self.client_idx}
         
-        self.connection.request('GET', self.base_exit_url, headers=headers)
+        self.connection.request('POST', self.base_exit_url, headers=headers)
         
         response = self.connection.getresponse()
         if response.status == 200:
-            
             print(f"Client {self.client_idx} successfully exited from the server {self.server_host}:{self.server_port}")
         else:
             print(f"Client failed to exited from the server {self.server_host}:{self.server_port}")
@@ -305,7 +306,7 @@ class Client:
         #     self.latency += self.accumulative_latency                   # speed correction
         #     self.latency -= passive_jump                                # latency too high, server forces jump
         #     self.accumulative_latency = 0.0                             # reset speed correction
-        print(f"Server time: {server_time}, current: {self.current_play_seconds()}")
+        # print(f"Server time: {server_time}, current: {self.current_play_seconds()}")
         self.latency = server_time - self.current_play_seconds()
             
         ######### get bandwidth #########

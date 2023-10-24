@@ -62,7 +62,7 @@ class Server:
         end = time.time()
         prepare = end - start
         lower, upper = self.encoder.check_range()
-        
+        t1 = time.time()
         if lower > request_gop:
             suggestion = self.jump_suggestion()
             video_idx = suggestion
@@ -72,7 +72,8 @@ class Server:
             video_idx = request_gop
             suggestion = request_gop + 1
             video_filename = f"{video_idx}_{request_rate:.1f}" + Config.VIDEO_FORMAT
-            
+        t2 = time.time()
+        print(f"In processing: wait: {prepare}, check: {t1 - end}, suggest: {t2 - t1}")
         return suggestion, video_filename, prepare
             
 
