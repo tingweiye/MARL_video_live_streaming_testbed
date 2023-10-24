@@ -101,7 +101,7 @@ class Client:
             print(f"Client {self.client_idx} successfully connected to the server {self.server_host}:{self.server_port}")
         else:
             print(f"Client failed to connected to the server {self.server_host}:{self.server_port}")
-        self.connection.sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+        # self.connection.sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
         # connection.close()
             
     def exit(self):
