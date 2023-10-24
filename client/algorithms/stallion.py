@@ -63,7 +63,7 @@ class stallion_solver(object):
         if overhead >= self.initial_latency + self.seg_duration + Config.ENCODING_TIME:
             rate = 0
         else:
-            dead_time = self.seg_duration + Config.ENCODING_TIME - overhead
+            dead_time = self.seg_duration - overhead
             ratio = dead_time/self.seg_duration
             predict_bw *= ratio
             rate = self.choose_rate(predict_bw)
