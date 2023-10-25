@@ -45,15 +45,16 @@ async def download_video(request, video_filename):
     client_idx = int(request.META.get('HTTP_IDX'))
     request_gop = int(request.META.get('HTTP_GOP'))
     request_rate = float(request.META.get('HTTP_RATE'))
-    # print(f"Requested client: {client_idx}, gop: {request_gop}, rate: {request_rate}, server range: {server.encoder.check_range()}")
     
-    t1 = time.time()
+    # t1 = time.time()
     suggestion, video_filename, prepare = server.process_request(request_gop, request_rate)
+    
     video_path = os.path.join(os.getcwd(), "data/"+video_filename)
-    t2 = time.time()
+    # t2 = time.time()
     if os.path.exists(video_path):
         lower, upper = server.encoder.check_range()
-        print(lower, upper, server.get_server_time())
+        print(f"Requested client: {client_idx}, gop: {request_gop}, rate: {request_rate}, server range: {server.encoder.check_range()}")
+        
         with open(video_path, 'rb') as video_file:
             file_content = video_file.read()
             response = StreamingHttpResponse(async_file_iterator(file_content))
@@ -65,8 +66,8 @@ async def download_video(request, video_filename):
         if request_gop + 1 != suggestion:
             Logger.log(f"Client {client_idx} latency too high, suggested downloading {suggestion - 1}")
         Logger.log(f"Client {client_idx} downloaded video segment {video_filename}")
-        t3 = time.time()
-        print(f"process: {t2 - t1}, get file: {t3 - t2}")
+        # t3 = time.time()
+        # print(f"process: {t2 - t1}, get file: {t3 - t2}")
         return response
     else:
         raise Http404("Video not found")

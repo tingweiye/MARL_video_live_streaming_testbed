@@ -62,7 +62,7 @@ class Server:
         end = time.time()
         prepare = end - start
         lower, upper = self.encoder.check_range()
-        t1 = time.time()
+        # t1 = time.time()
         if lower > request_gop:
             suggestion = self.jump_suggestion()
             video_idx = suggestion
@@ -73,7 +73,7 @@ class Server:
             suggestion = request_gop + 1
             video_filename = f"{video_idx}_{request_rate:.1f}" + Config.VIDEO_FORMAT
         t2 = time.time()
-        print(f"In processing: wait: {prepare}, check: {t1 - end}, suggest: {t2 - t1}")
+        # print(f"In processing: wait: {prepare}, check: {t1 - end}, suggest: {t2 - t1}")
         return suggestion, video_filename, prepare
             
 
@@ -108,8 +108,8 @@ class LiveEncoder(threading.Thread):
             try:
                 if os.path.isfile(file_path):
                     os.remove(file_path)
-            except Exception as e:
-                print(f"Error deleting {file_path}: {e}")
+            except FileNotFoundError as e:
+                print(f"No such file {file_path}: {e}")
     
     def pesudo_encode(self, idx):
         # time.sleep(self.encode_time) # simulate encoding time
@@ -128,7 +128,8 @@ class LiveEncoder(threading.Thread):
             self.pesudo_encode(self.high + 1)
             if self.high - self.low + 2 > Config.SERVER_MAX_BUFFER_LEN:
                 self.low += 1
-                self.delete_files(self.low - 1)
+                # delay one deletion to avoid data problem
+                self.delete_files(self.low - 2)
             while int(self.get_server_time()) == self.high + 1:
                 pass
             self.high += 1
