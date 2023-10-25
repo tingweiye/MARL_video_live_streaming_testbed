@@ -10,6 +10,8 @@ def on_starting(server):
 
 bind = "127.0.0.1:8080"
 workers = 1
+timeout = 120
+keepalive = 120
 worker_class = 'uvicorn.workers.UvicornWorker'
 app_module = 'server'
 app_callable = 'videoServer'

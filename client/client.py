@@ -272,7 +272,6 @@ class Client:
         if self.algo == 'stallion':
             self.solver.update_bw_latency(self.bw, self.latency)
             rate, _ = self.solver.solve(self.get_buffer_size(), self.latency)
-        rate = 3.0
         #############################################################################
         ###################### Adaptive flow control Algorithm ######################
         #############################################################################
@@ -281,6 +280,7 @@ class Client:
         download_start = time.time()
         # time.sleep(6) # simulate congestion
         suggestion, prepare, passive_jump, server_time = self.__request_video_seg(rate)
+        
         download_end = time.time()
         self.download_time = download_end - download_start - prepare
         
