@@ -1,8 +1,9 @@
-from django.http import FileResponse, Http404, HttpResponse
+from django.http import FileResponse, Http404, HttpResponse, StreamingHttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
 from django.apps import apps
+import asyncio
 import threading
 import os
 import time
@@ -21,8 +22,17 @@ server = Server()
 shared_data_lock = threading.Lock()
 shared_register_lock = threading.Lock()
 
+async def async_file_iterator(file_path, chunk_size=8192):
+    with open(file_path, 'rb') as video_file:
+        while True:
+            chunk = video_file.read(chunk_size)
+            if not chunk:
+                break
+            yield chunk
+            await asyncio.sleep(0)
+
 # Handle video download action
-def download_video(request, video_filename):
+async def download_video(request, video_filename):
     print("   ")
     client_idx = int(request.META.get('HTTP_IDX'))
     request_gop = int(request.META.get('HTTP_GOP'))
@@ -36,8 +46,9 @@ def download_video(request, video_filename):
     if os.path.exists(video_path):
         lower, upper = server.encoder.check_range()
         print(lower, upper, server.get_server_time())
-        video_file = open(video_path, 'rb')
-        response = FileResponse(video_file)
+        # video_file = open(video_path, 'rb')
+        # response = FileResponse(video_file)
+        response = StreamingHttpResponse(async_file_iterator(video_path))
         response['Content-Type'] = 'video/mp4'
         response['Content-Disposition'] = f'attachment; filename="{video_filename}"'
         response['Server-Time'] = server.get_server_time()

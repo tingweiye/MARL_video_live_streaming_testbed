@@ -111,7 +111,7 @@ class Client:
             
     def exit(self):
         self.playing = False
-        headers = {'idx': self.client_idx}
+        headers = {'idx': str(self.client_idx)}
         
         try:
             response = self.connection.post(self.base_url + self.base_exit_url, headers=headers)
@@ -203,7 +203,7 @@ class Client:
                     self.accumulative_latency -= (self.play_speed - 1) * (self.frame_time)
             end = time.time()
             t1 = end - start
-            print(t1, self.frame_time)
+            # print(t1, self.frame_time)
             if t1 > Config.SEG_DURATION / self.play_speed:
                 self.frame_time *= ratio[0]
             else:
