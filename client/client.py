@@ -272,7 +272,7 @@ class Client:
         if self.algo == 'stallion':
             self.solver.update_bw_latency(self.bw, self.latency)
             rate, _ = self.solver.solve(self.get_buffer_size(), self.latency)
-        # rate = 6.0
+        rate = 2.0
         #############################################################################
         ###################### Adaptive flow control Algorithm ######################
         #############################################################################
