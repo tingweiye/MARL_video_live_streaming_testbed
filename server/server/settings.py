@@ -37,7 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    # 'videoServer',
+    'channels',
     'videoServer.apps.VideoserverConfig',
 ]
 
@@ -69,8 +69,8 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'server.wsgi.application'
-
+# WSGI_APPLICATION = 'server.wsgi.application'
+ASGI_APPLICATION = 'server.routing.application'
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases

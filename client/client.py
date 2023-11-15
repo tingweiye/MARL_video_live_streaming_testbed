@@ -9,8 +9,6 @@ import sys
 import argparse
 sys.path.append("..")
 import os
-print(os.getcwd())
-
 from utils.config import Config
 from utils.utils import *
 
@@ -261,7 +259,7 @@ class Client:
 
         
     # merchant method putting segs into the buffer
-    def download(self):
+    def download(self, rate, speed=1):
         print("   ")
         
         #############################################################################
@@ -269,9 +267,9 @@ class Client:
         #############################################################################
         # Use designed algorithm to control the video flow
         # TODO 
-        if self.algo == 'stallion':
-            self.solver.update_bw_latency(self.bw, self.latency)
-            rate, _ = self.solver.solve(self.get_buffer_size(), self.latency)
+        # if self.algo == 'stallion':
+        #     self.solver.update_bw_latency(self.bw, self.latency)
+        #     rate, _ = self.solver.solve(self.get_buffer_size(), self.latency)
         #############################################################################
         ###################### Adaptive flow control Algorithm ######################
         #############################################################################
@@ -323,6 +321,13 @@ class Client:
         self.rate_his.append(rate)
         self.server_time_his.append(server_time)
         self.update_data()
+        
+        return self.latency, \
+                self.idle, \
+                self.get_buffer_size(), \
+                self.freeze, \
+                self.download_time, \
+                self.bw
         
     def update_data(self):
         

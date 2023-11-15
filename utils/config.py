@@ -4,7 +4,7 @@ class Config:
     SEG_DURATION = 1.0
     CHUNK_DURATION = 0.2
     CHUNK_IN_SEG = SEG_DURATION/CHUNK_DURATION
-    BITRATE = [0.3, 0.5, 1.0, 2.0, 3.0, 6.0]
+    BITRATE = [2.5, 4.0, 5.0, 6.5, 8.0]
     SPEED = [0.9, 1.0, 1.1]
     MAX_RATE = BITRATE[-1]
     FPS = 24
@@ -12,10 +12,10 @@ class Config:
     
     # clients
     INITIAL_DUMMY_LATENCY = 3.0
-    INITIAL_RATE = 3.0
+    INITIAL_RATE = BITRATE[int(len(BITRATE) / 2)]
     INITIAL_LATENCY = 1.5
     CLIENT_MAX_BUFFER_LEN = 5
-    MAX_HISTORY = 10000
+    MAX_HISTORY = 600
     
     # server
     ENCODING_TIME = 1
