@@ -329,7 +329,7 @@ class Client:
                 self.download_time_his[-1], \
                 self.bw_his[-1], \
                 passive_jump, \
-                self.server_time_his
+                self.server_time_his[-1]
         
     def update_data(self):
         
