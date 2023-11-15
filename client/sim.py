@@ -37,8 +37,9 @@ BUFFER_NORM_FACTOR = Config.CLIENT_MAX_BUFFER_LEN + 1
 CHUNK_TIL_VIDEO_END_CAP = 48.0
 M_IN_K = 1000.0
 REBUF_PENALTY = 4.3  # 1 sec rebuffering -> 3 Mbps
-FREEZE_PENALTY = 10
+FREEZE_PENALTY = 25
 LATENCY_PENALTY = 0.2
+JUMP_PENALTY = 1
 SMOOTH_PENALTY = 1
 DEFAULT_QUALITY = Config.INITIAL_RATE  # default video quality without agent
 RANDOM_SEED = 42
@@ -77,7 +78,7 @@ class Simulator:
         for i in range(610):
             self.solver.update_bw_latency(self.client.bw, self.client.latency)
             rate, _ = self.solver.solve(self.client.get_buffer_size(), self.client.latency)
-            latency, idle, buffer_size, freeze, download_time, bw = self.client.download(rate)
+            latency, idle, buffer_size, freeze, download_time, bw, jump = self.client.download(rate)
             
     def pensieveRun(self):
         logging.basicConfig(filename=PENSIEVE_LOG_FILE + '_central',
@@ -149,7 +150,7 @@ class Simulator:
                         actions.append(torch.tensor([action]))
                         states.append(state.unsqueeze(0))
 
-                        latency, idle, buffer_size, freeze, download_time, bw = self.client.download(rate)
+                        latency, idle, buffer_size, freeze, download_time, bw, jump = self.client.download(rate)
                         
                         time_stamp += download_time
 
@@ -160,7 +161,9 @@ class Simulator:
                         reward = log_rate \
                                 - FREEZE_PENALTY * freeze \
                                 - LATENCY_PENALTY* latency \
-                                - SMOOTH_PENALTY * np.abs(log_rate - log_last_rate)
+                                - JUMP_PENALTY   * jump \
+                                - SMOOTH_PENALTY * np.abs(log_rate - log_last_rate) 
+                                
                         # reward_max = 2.67
                         print(f"Get reward: {reward}, log_rate: {log_rate}, freeze: {freeze}, latency: {latency}")
                         # reward = float(max(min(reward, reward_max), -4*reward_max) / reward_max)
