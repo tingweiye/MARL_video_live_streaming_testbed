@@ -71,6 +71,7 @@ class Client:
         self.jump_his = []
         self.server_time_his = []
         
+        self.path = os.path.join(os.getcwd(), "data")
         self.test = time.time()
         year, month, day, hours, minutes, seconds, milliseconds = convert_timestamp(time.time())
         print(f"Client start time: {year}/{month}/{day}:{hours}:{minutes}:{seconds}:{milliseconds}")
@@ -155,6 +156,16 @@ class Client:
     
     def current_play_seconds(self):
         return self.current_playing + Config.SEG_DURATION - self.seg_left
+    
+    def delete_files(self, idx):
+        for rate in Config.BITRATE:
+            file_name = str(idx) + '_' + str(rate) + '.mp4'
+            file_path = os.path.join(self.path, file_name)
+            try:
+                if os.path.isfile(file_path):
+                    os.remove(file_path)
+            except FileNotFoundError as e:
+                print(f"No such file {file_path}: {e}")
             
     def __start_play(self):
         # start a thread executing a local video player simulator
@@ -188,6 +199,7 @@ class Client:
             self.seg_left = 1
                 
             self.current_playing = seg.idx
+            self.delete_files(seg.idx)
             # release block for the downloader to put new segments in the buffer
             self.buffer_not_full.set()
             Logger.log(f"Client {self.client_idx} playing segment {seg.idx} at rate {seg.rate}")
@@ -201,6 +213,7 @@ class Client:
                     self.accumulative_latency -= (self.play_speed - 1) * (self.frame_time)
             end = time.time()
             t1 = end - start
+            print(t1)
             # print(t1, self.frame_time)
             if t1 > Config.SEG_DURATION / self.play_speed:
                 self.frame_time *= ratio[0]
