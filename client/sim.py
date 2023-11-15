@@ -162,7 +162,7 @@ class Simulator:
                                 - LATENCY_PENALTY* latency \
                                 - SMOOTH_PENALTY * np.abs(log_rate - log_last_rate)
                         # reward_max = 2.67
-                        print(f"Get reward: {reward}")
+                        print(f"Get reward: {reward}, log_rate: {log_rate}, freeze: {freeze}, latency: {latency}")
                         # reward = float(max(min(reward, reward_max), -4*reward_max) / reward_max)
                         rewards.append(reward)
                         rewards_comparison.append(torch.tensor([reward]))
