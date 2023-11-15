@@ -213,7 +213,6 @@ class Client:
                     self.accumulative_latency -= (self.play_speed - 1) * (self.frame_time)
             end = time.time()
             t1 = end - start
-            print(t1)
             # print(t1, self.frame_time)
             if t1 > Config.SEG_DURATION / self.play_speed:
                 self.frame_time *= ratio[0]
