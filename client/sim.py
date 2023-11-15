@@ -36,10 +36,11 @@ HD_REWARD = [1, 2, 3, 12, 15, 20]
 BUFFER_NORM_FACTOR = Config.CLIENT_MAX_BUFFER_LEN + 1
 CHUNK_TIL_VIDEO_END_CAP = 48.0
 M_IN_K = 1000.0
+QUALTITY_COEF = 2
 REBUF_PENALTY = 4.3  # 1 sec rebuffering -> 3 Mbps
 FREEZE_PENALTY = 25
-LATENCY_PENALTY = 0.2
-JUMP_PENALTY = 1
+LATENCY_PENALTY = 0.3
+JUMP_PENALTY = 1.5
 SMOOTH_PENALTY = 1
 DEFAULT_QUALITY = Config.INITIAL_RATE  # default video quality without agent
 RANDOM_SEED = 42
@@ -158,7 +159,7 @@ class Simulator:
                         log_rate = np.log(rate)
                         log_last_rate = np.log(last_rate)
 
-                        reward = log_rate \
+                        reward =  QUALTITY_COEF  * log_rate \
                                 - FREEZE_PENALTY * freeze \
                                 - LATENCY_PENALTY* latency \
                                 - JUMP_PENALTY   * jump \
