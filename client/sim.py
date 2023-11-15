@@ -129,6 +129,8 @@ class Simulator:
             # memory = ReplayMemory()
 
             for epoch in range(TOTALEPOCH):
+                
+                total_bw = 0
 
                 for explore in range(exploration_size):
                     states = []
@@ -172,6 +174,7 @@ class Simulator:
                         rewards_comparison.append(torch.tensor([reward]))
 
                         last_rate = rate
+                        total_bw += bw
 
                         # dequeue history record
                         state = np.roll(state, -1, axis=1)
@@ -187,7 +190,7 @@ class Simulator:
 
                         state = torch.from_numpy(state)
 
-                        # log time_stamp, rate, buffer_size, reward
+                    # log time_stamp, rate, buffer_size, reward
                         log_file.write(str(time_stamp) + '\t' +
                                     str(rate) + '\t' +
                                     str(bw) + '\t' +
@@ -287,7 +290,8 @@ class Simulator:
                 logging.info('Epoch: ' + str(epoch) +
                             ' Avg_policy_loss: ' + str(loss_clip_actor.detach().cpu().numpy()) +
                             ' Avg_value_loss: ' + str(loss_value.detach().cpu().numpy()) +
-                            ' Avg_entropy_loss: ' + str(A_DIM * loss_ent.detach().cpu().numpy()))
+                            ' Avg_entropy_loss: ' + str(A_DIM * loss_ent.detach().cpu().numpy()) +
+                            ' Avg_throughput: ' + str(total_bw / (episode_steps * exploration_size)))
 
                 if epoch % UPDATE_INTERVAL == 0:
                     logging.info("Model saved in file")
