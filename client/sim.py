@@ -79,7 +79,7 @@ class Simulator:
         for i in range(610):
             self.solver.update_bw_latency(self.client.bw, self.client.latency)
             rate, _ = self.solver.solve(self.client.get_buffer_size(), self.client.latency)
-            latency, idle, buffer_size, freeze, download_time, bw, jump = self.client.download(rate)
+            latency, idle, buffer_size, freeze, download_time, bw, jump, server_time = self.client.download(rate)
             
     def pensieveRun(self):
         logging.basicConfig(filename=PENSIEVE_LOG_FILE + '_central',
@@ -151,9 +151,9 @@ class Simulator:
                         actions.append(torch.tensor([action]))
                         states.append(state.unsqueeze(0))
 
-                        latency, idle, buffer_size, freeze, download_time, bw, jump = self.client.download(rate)
+                        latency, idle, buffer_size, freeze, download_time, bw, jump, server_time = self.client.download(rate)
                         
-                        time_stamp += download_time
+                        time_stamp = server_time
 
                         # -- log scale reward --
                         log_rate = np.log(rate)

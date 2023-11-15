@@ -328,7 +328,8 @@ class Client:
                 self.freeze_his[-1], \
                 self.download_time_his[-1], \
                 self.bw_his[-1], \
-                passive_jump
+                passive_jump, \
+                self.server_time_his
         
     def update_data(self):
         
