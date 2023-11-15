@@ -322,12 +322,12 @@ class Client:
         self.server_time_his.append(server_time)
         self.update_data()
         
-        return self.latency, \
-                self.idle, \
-                self.get_buffer_size(), \
-                self.freeze, \
-                self.download_time, \
-                self.bw
+        return self.latency_his[-1], \
+                self.idle_his[-1], \
+                self.buffer_his[-1], \
+                self.freeze_his[-1], \
+                self.download_time_his[-1], \
+                self.bw_his[-1]
         
     def update_data(self):
         

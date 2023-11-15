@@ -296,7 +296,7 @@ class Simulator:
                     ent_coeff = 0.95 * ent_coeff
 
 if __name__ == '__main__':
-    time.sleep(args.sleep)
+    # time.sleep(args.sleep)
     delete_files_in_folder('data/')
     sim = Simulator(args.algo)
 
