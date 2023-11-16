@@ -134,7 +134,7 @@ class LiveEncoder(threading.Thread):
             self.pesudo_encode(self.high + 1)
             self.high += 1
 
-            print(self.low, self.high, self.get_server_time())
+            # print(self.low, self.high, self.get_server_time())
             
 
 class client_info:
