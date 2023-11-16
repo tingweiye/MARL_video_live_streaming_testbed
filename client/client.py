@@ -43,6 +43,7 @@ class Client:
         # client info
         self.accumulative_latency = 0.0
         self.base_time = -1.
+        self.current_time = 0
         self.first_gop = 0
         self.next_gop = 0
         self.last_gop = 0
@@ -155,7 +156,7 @@ class Client:
         return self.buffer.qsize() + self.seg_left
     
     def current_play_seconds(self):
-        return self.current_playing + Config.SEG_DURATION - self.seg_left
+        return self.current_playing + time.time() - self.current_time
     
     def delete_files(self, idx):
         for rate in Config.BITRATE:
@@ -197,6 +198,7 @@ class Client:
             start = time.time()
             seg = self.buffer.get()
             self.seg_left = 1
+            self.current_time = time.time()
                 
             self.current_playing = seg.idx
             self.delete_files(seg.idx)
@@ -274,6 +276,9 @@ class Client:
     def download(self, rate, speed=1):
         print("   ")
         
+        # sl = max(2 - self.current_play_seconds()*0.05, 0)
+        # time.sleep(sl)
+        # print(sl)
         #############################################################################
         ###################### Adaptive flow control Algorithm ######################
         #############################################################################
