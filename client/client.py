@@ -159,7 +159,7 @@ class Client:
     
     def delete_files(self, idx):
         for rate in Config.BITRATE:
-            file_name = str(idx) + '_' + str(rate) + '.mp4'
+            file_name = 'd_' + str(idx) + '_' + str(rate) + '.mp4'
             file_path = os.path.join(self.path, file_name)
             try:
                 if os.path.isfile(file_path):
