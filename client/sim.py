@@ -322,5 +322,5 @@ if __name__ == '__main__':
     sim = Simulator(args.algo)
 
     sim.start()
-    # sim.pensieveRun()
-    sim.stallionRun()
+    sim.pensieveRun()
+    # sim.stallionRun()
