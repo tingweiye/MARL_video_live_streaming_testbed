@@ -118,9 +118,9 @@ class Simulator:
             time_stamp = 0
 
             exploration_size = 4
-            episode_steps = 25 ############ testing!!!!!!
+            episode_steps = 10 ############ testing!!!!!!
             update_num = 1
-            batch_size = 64
+            batch_size = 20
             gamma = 0.99
             gae_param = 0.95
             clip = 0.2
