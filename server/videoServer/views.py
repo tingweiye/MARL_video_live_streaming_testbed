@@ -52,7 +52,7 @@ async def download_video(request, video_filename):
     video_path = os.path.join(os.getcwd(), "data/"+video_filename)
     # t2 = time.time()
     if os.path.exists(video_path):
-        lower, upper = server.encoder.check_range()
+        # lower, upper = server.encoder.check_range()
         print(f"Requested client: {client_idx}, gop: {request_gop}, rate: {request_rate}, server range: {server.encoder.check_range()}")
         
         with open(video_path, 'rb') as video_file:

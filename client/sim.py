@@ -41,12 +41,13 @@ REBUF_PENALTY = 4.3  # 1 sec rebuffering -> 3 Mbps
 FREEZE_PENALTY = 20
 LATENCY_PENALTY = 0.2
 JUMP_PENALTY = 2
-SMOOTH_PENALTY = 1
+SMOOTH_PENALTY = 3.5
 DEFAULT_QUALITY = Config.INITIAL_RATE  # default video quality without agent
 RANDOM_SEED = 42
 RAND_RANGE = 1000
 SUMMARY_DIR = './results'
 PENSIEVE_LOG_FILE = './results/pensieve/log'
+STALLION_LOG_FILE = './results/stallion/log'
 TEST_LOG_FOLDER = './test_results/'
 TRAIN_TRACES = './data/cooked_traces/'
 
@@ -76,10 +77,21 @@ class Simulator:
     def stallionRun(self):
         self.solver = stallion.stallion_solver(Config.INITIAL_LATENCY)
         
-        for i in range(610):
-            self.solver.update_bw_latency(self.client.bw, self.client.latency)
-            rate, _ = self.solver.solve(self.client.get_buffer_size(), self.client.latency)
-            latency, idle, buffer_size, freeze, download_time, bw, jump, server_time = self.client.download(rate)
+        with open(STALLION_LOG_FILE + '_record', 'w') as log_file:
+            for i in range(610):
+                self.solver.update_bw_latency(self.client.bw, self.client.latency)
+                rate, _ = self.solver.solve(self.client.get_buffer_size(), self.client.latency)
+                latency, idle, buffer_size, freeze, download_time, bw, jump, server_time = self.client.download(rate)
+            log_file.write(str(server_time) + '\t' +
+                        str(rate) + '\t' +
+                        str(bw) + '\t' +
+                        str(buffer_size) + '\t' +
+                        str(freeze) + '\t' +
+                        str(idle) + '\t' +
+                        str(latency) + '\t' +
+                        str(jump) + '\t')
+            log_file.flush()
+            
             
     def pensieveRun(self):
         logging.basicConfig(filename=PENSIEVE_LOG_FILE + '_central',
@@ -198,6 +210,7 @@ class Simulator:
                                     str(freeze) + '\t' +
                                     str(idle) + '\t' +
                                     str(latency) + '\t' +
+                                    str(jump) + '\t' +
                                     str(reward) + '\n')
                         log_file.flush()
 
@@ -309,5 +322,5 @@ if __name__ == '__main__':
     sim = Simulator(args.algo)
 
     sim.start()
-    sim.pensieveRun()
-    # sim.stallionRun()
+    # sim.pensieveRun()
+    sim.stallionRun()

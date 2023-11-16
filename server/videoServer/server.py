@@ -58,7 +58,7 @@ class Server:
     def process_request(self, request_gop, request_rate):
         start = time.time()
         while(request_gop > self.encoder.check_range()[1]):
-            pass
+            time.sleep(0)
         end = time.time()
         prepare = end - start
         lower, upper = self.encoder.check_range()
@@ -125,16 +125,16 @@ class LiveEncoder(threading.Thread):
         self.base_time = time.time()
         Logger.log("Server encoder started")
         while self.running:
-            self.pesudo_encode(self.high + 1)
+            while int(self.get_server_time()) == self.high + 1:
+                time.sleep(0)
             if self.high - self.low + 2 > Config.SERVER_MAX_BUFFER_LEN:
                 self.low += 1
                 # delay one deletion to avoid data problem
                 self.delete_files(self.low - 2)
-            while int(self.get_server_time()) == self.high + 1:
-                pass
+            self.pesudo_encode(self.high + 1)
             self.high += 1
 
-            # print(self.low, self.high, self.get_server_time())
+            print(self.low, self.high, self.get_server_time())
             
 
 class client_info:

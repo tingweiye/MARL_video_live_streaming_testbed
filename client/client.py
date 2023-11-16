@@ -257,7 +257,7 @@ class Client:
                 local_file.write(response.content)
             t3 = time.time()
             
-            print(f"Request and response: {t2 - t1}, write: {t3 - t2}")
+            # print(f"Request and response: {t2 - t1}, write: {t3 - t2}")
             # self.connection.close()
 
             self.last_gop = self.next_gop
@@ -320,7 +320,7 @@ class Client:
         #     self.accumulative_latency = 0.0                             # reset speed correction
         # print(f"Server time: {server_time}, current: {self.current_play_seconds()}")
         self.latency = server_time - self.current_play_seconds() - self.rtt
-            
+        print(f"Latency: {self.latency:.3f}, server time: {server_time:.3f}, current: {self.current_play_seconds():.3f}")
         ######### get bandwidth #########
         self.bw = rate / self.download_time
         
