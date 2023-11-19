@@ -180,7 +180,7 @@ class Simulator:
                                 - SMOOTH_PENALTY * np.abs(log_rate - log_last_rate) 
                                 
                         # reward_max = 2.67
-                        print(f"Get reward: {reward}, log_rate: {log_rate}, freeze: {freeze}, latency: {latency}")
+                        # print(f"Get reward: {reward}, log_rate: {log_rate}, freeze: {freeze}, latency: {latency}")
                         # reward = float(max(min(reward, reward_max), -4*reward_max) / reward_max)
                         rewards.append(reward)
                         rewards_comparison.append(torch.tensor([reward]))
@@ -282,11 +282,6 @@ class Simulator:
                     loss_ent = ent_coeff * torch.mean(probs * torch.log(probs + 1e-6))
                     # total
                     policy_total_loss = loss_clip_actor + loss_ent
-                    # print("hell0")
-
-                    # copy the new model to old model?
-                    # model_actor_old.load_state_dict(model_actor.state_dict())
-                    # model_critic_old.load_state_dict(model_critic.state_dict())
 
                     # update 
                     optimizer_actor.zero_grad()
@@ -296,7 +291,6 @@ class Simulator:
                     loss_value.backward()
                     optimizer_actor.step()
                     optimizer_critic.step()
-                    # print("hell0")
 
                 ## test and save the model
                 memory.clear()

@@ -153,10 +153,10 @@ class Client:
     """
     
     def get_buffer_size(self):
-        return self.buffer.qsize() + self.seg_left
+        return self.buffer.qsize() + 1 - min(time.time() - self.current_time, 1)#self.seg_left
     
     def current_play_seconds(self):
-        return self.current_playing + time.time() - self.current_time
+        return self.current_playing + min(time.time() - self.current_time, 1)
     
     def delete_files(self, idx):
         for rate in Config.BITRATE:
@@ -199,7 +199,6 @@ class Client:
             seg = self.buffer.get()
             self.seg_left = 1
             self.current_time = time.time()
-                
             self.current_playing = seg.idx
             self.delete_files(seg.idx)
             # release block for the downloader to put new segments in the buffer
@@ -215,7 +214,7 @@ class Client:
                     self.accumulative_latency -= (self.play_speed - 1) * (self.frame_time)
             end = time.time()
             t1 = end - start
-            print(t1, self.frame_time)
+            # print(t1, self.frame_time)
             if t1 > Config.SEG_DURATION / self.play_speed:
                 self.frame_time *= ratio[0]
             else:
