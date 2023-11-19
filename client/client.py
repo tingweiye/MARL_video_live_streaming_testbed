@@ -153,6 +153,7 @@ class Client:
     """
     
     def get_buffer_size(self):
+        print(self.buffer.qsize(), time.time() - self.current_time, min(time.time() - self.current_time, 1))
         return self.buffer.qsize() + 1 - min(time.time() - self.current_time, 1)#self.seg_left
     
     def current_play_seconds(self):
