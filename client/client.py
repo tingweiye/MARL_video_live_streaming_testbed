@@ -209,28 +209,28 @@ class Client:
             Logger.log(f"Client {self.client_idx} playing segment {seg.idx} at rate {seg.rate}")
 
             
-            # for _ in range(int(Config.SEG_DURATION * Config.FPS)):
-            #     time.sleep(self.frame_time / self.play_speed)
-            #     self.seg_left -= self.frame_time#Config.FRAME_DURATION
-            #     # Speed != 1 affects latency. Use accumulative_latency to avoid data integrety issue
-            #     if self.play_speed != 1:
-            #         self.accumulative_latency -= (self.play_speed - 1) * (self.frame_time)
-            time.sleep(time_sleep)
+            for _ in range(int(Config.SEG_DURATION * Config.FPS)):
+                time.sleep(self.frame_time / self.play_speed)
+                self.seg_left -= self.frame_time#Config.FRAME_DURATION
+                # Speed != 1 affects latency. Use accumulative_latency to avoid data integrety issue
+                if self.play_speed != 1:
+                    self.accumulative_latency -= (self.play_speed - 1) * (self.frame_time)
+            # time.sleep(time_sleep)
             
-            if t1 > 1:
-                time_sleep *= ratio[0]
-            else:
-                time_sleep *= ratio[1]
-            
-            # if t1 > Config.SEG_DURATION / self.play_speed:
-            #     self.frame_time *= ratio[0]
+            # if t1 > 1:
+            #     time_sleep *= ratio[0]
             # else:
-            #     self.frame_time *= ratio[1]
+            #     time_sleep *= ratio[1]
+            
+            if t1 > Config.SEG_DURATION / self.play_speed:
+                self.frame_time *= ratio[0]
+            else:
+                self.frame_time *= ratio[1]
                 
             end = time.time()
             t1 = end - start
             # print(t1, self.frame_time)
-            print(t1)
+            # print(t1)
             
     
     """
@@ -288,7 +288,6 @@ class Client:
         print("   ")
         
         # sl = max(2 - self.current_play_seconds()*0.05, 0)
-        # time.sleep(sl)
         # print(sl)
         #############################################################################
         ###################### Adaptive flow control Algorithm ######################
@@ -328,16 +327,18 @@ class Client:
         self.idle += full_end - full_start
         
         ######### get latency #########
-        # if self.latency == Config.INITIAL_DUMMY_LATENCY:
-        #     self.latency = server_time - self.current_play_seconds() - self.rtt
-        # else:
-        #     self.latency += 0 if self.freeze < 0.00001 else self.freeze # add freeze time
-        #     self.latency += self.accumulative_latency                   # speed correction
-        #     self.latency -= passive_jump                                # latency too high, server forces jump
-        #     self.accumulative_latency = 0.0                             # reset speed correction
-        print(f"Server time: {server_time}, current: {current_play_time}")
-        self.latency = server_time - current_play_time - self.rtt
-        print(f"Latency: {self.latency:.3f}, server time: {server_time:.3f}, current: {self.current_playing:.3f}, diff: {time.time() - self.current_time}")
+        if self.latency == Config.INITIAL_DUMMY_LATENCY:
+            self.latency = server_time - self.current_play_seconds() - self.rtt
+        else:
+            self.latency += 0 if self.freeze < 0.00001 else self.freeze # add freeze time
+            self.latency += self.accumulative_latency                   # speed correction
+            self.latency -= passive_jump                                # latency too high, server forces jump
+            self.accumulative_latency = 0.0                             # reset speed correction
+        if self.latency < 0:
+            self.latency = server_time - self.current_play_seconds() - self.rtt
+        # print(f"Server time: {server_time}, current: {current_play_time}")
+        # self.latency = server_time - current_play_time - self.rtt
+        # print(f"Latency: {self.latency:.3f}, server time: {server_time:.3f}, current: {self.current_playing:.3f}, diff: {time.time() - self.current_time}")
         ######### get bandwidth #########
         self.bw = rate / self.download_time
         

@@ -1,2 +1,0 @@
-INFO:root:Epoch: 0 Avg_policy_loss: -32.202583 Avg_value_loss: 855.71814 Avg_entropy_loss: -1.5695828199386597 Avg_throughput: 437.34158418360914
-INFO:root:Model saved in file
