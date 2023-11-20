@@ -335,7 +335,7 @@ class Client:
         #     self.latency += self.accumulative_latency                   # speed correction
         #     self.latency -= passive_jump                                # latency too high, server forces jump
         #     self.accumulative_latency = 0.0                             # reset speed correction
-        # print(f"Server time: {server_time}, current: {self.current_play_seconds()}")
+        print(f"Server time: {server_time}, current: {current_play_time}")
         self.latency = server_time - current_play_time - self.rtt
         print(f"Latency: {self.latency:.3f}, server time: {server_time:.3f}, current: {self.current_playing:.3f}, diff: {time.time() - self.current_time}")
         ######### get bandwidth #########
