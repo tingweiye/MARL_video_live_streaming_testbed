@@ -218,9 +218,9 @@ class Client:
             time.sleep(time_sleep)
             
             if t1 > 1:
-                time_sleep -= t1 - 1
+                time_sleep *= ratio[0]
             else:
-                time_sleep += 1 - t1
+                time_sleep *= ratio[1]
             
             # if t1 > Config.SEG_DURATION / self.play_speed:
             #     self.frame_time *= ratio[0]
