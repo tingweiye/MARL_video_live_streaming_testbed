@@ -303,6 +303,7 @@ class Client:
         #############################################################################
         
         # get the next gop and calculate the download time
+        current_play_time = self.current_play_seconds()
         download_start = time.time()
         # time.sleep(6) # simulate congestion
         suggestion, prepare, passive_jump, server_time = self.__request_video_seg(rate)
@@ -334,8 +335,8 @@ class Client:
         #     self.latency += self.accumulative_latency                   # speed correction
         #     self.latency -= passive_jump                                # latency too high, server forces jump
         #     self.accumulative_latency = 0.0                             # reset speed correction
-        print(f"Server time: {server_time}, current: {self.current_play_seconds()}")
-        self.latency = server_time - self.current_play_seconds() - self.rtt
+        # print(f"Server time: {server_time}, current: {self.current_play_seconds()}")
+        self.latency = server_time - current_play_time - self.rtt
         print(f"Latency: {self.latency:.3f}, server time: {server_time:.3f}, current: {self.current_playing:.3f}, diff: {time.time() - self.current_time}")
         ######### get bandwidth #########
         self.bw = rate / self.download_time
