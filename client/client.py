@@ -42,6 +42,7 @@ class Client:
         
         # client info
         self.accumulative_latency = 0.0
+        self.accumulative_jump = 0.0
         self.base_time = -1.
         self.current_time = 0
         self.first_gop = 0
@@ -153,7 +154,7 @@ class Client:
     """
     
     def get_buffer_size(self):
-        print(self.buffer.qsize(), time.time() - self.current_time, min(time.time() - self.current_time, 1))
+        # print(self.buffer.qsize(), time.time() - self.current_time, min(time.time() - self.current_time, 1))
         return self.buffer.qsize() + 1 - min(time.time() - self.current_time, 1)#self.seg_left
     
     def current_play_seconds(self):
@@ -183,7 +184,8 @@ class Client:
         self.current_playing = -1
         ratio = (0.995, 1.005)
         time_sleep = 1 ###################
-        t1 = 1         ###################
+        gop = 1         ###################
+        acc_lat = 0
         while(self.playing):
             # Wait until the buffer is not empty, and calculate freeze time
             ###################### Handling video freezes ######################
@@ -195,6 +197,7 @@ class Client:
                 self.buffer_not_empty.wait()
                 freeze_end = time.time()
                 self.freeze = freeze_end - freeze_start
+                acc_lat += self.freeze
                 self.freeze_avialable.set()
             ###################### Handling video freezes ######################
             
@@ -227,13 +230,13 @@ class Client:
             # else:
             #     self.frame_time *= ratio[1]
             
-            while time.time() - self.current_time < 1:
+            while time.time() - self.base_time < gop + acc_lat:
                 time.sleep(0)
-                
+            gop += 1
             end = time.time()
             t1 = end - start
-            # print(t1, self.frame_time)
-            # print(t1)
+            # print(time.time() - self.base_time)
+            print(t1)
             
     
     """
@@ -267,15 +270,15 @@ class Client:
             suggestion = int(response.headers.get('suggestion'))
             prepare = float(response.headers.get('Prepare-Time'))
 
+            passive_jump = suggestion - self.next_gop - 1
+            self.last_gop = suggestion - 1
+            self.next_gop = suggestion
+            
             with open('data/' + download_filename, 'wb') as local_file:
                 local_file.write(response.content)
             
             # print(f"Request and response: {t2 - t1}, write: {t3 - t2}")
             # self.connection.close()
-
-            self.last_gop = self.next_gop
-            passive_jump = suggestion - self.last_gop - 1
-            self.next_gop = suggestion
             return suggestion, prepare, passive_jump, server_time
         except:
             self.connection.close()
@@ -306,7 +309,6 @@ class Client:
         download_start = time.time()
         # time.sleep(6) # simulate congestion
         suggestion, prepare, passive_jump, server_time = self.__request_video_seg(rate)
-        
         download_end = time.time()
         self.download_time = download_end - download_start - prepare
         
@@ -315,9 +317,6 @@ class Client:
         self.buffer_not_empty.set()
         # if the video freezes, wait until it finishes calculating the freeze time
         self.freeze_avialable.wait()
-        
-        # self.latency = server_time - current_play_time - self.download_time - self.rtt
-        # print(f"Latency: {self.latency:.3f}, server time: {server_time:.3f}, current: {self.current_playing:.3f}, diff: {time.time() - self.current_time}")
         
         ######### get idle time #########
         self.idle = prepare
@@ -331,16 +330,18 @@ class Client:
         
         ######### get latency #########
         if self.latency == Config.INITIAL_DUMMY_LATENCY:
-            self.latency = server_time - self.current_play_seconds() - self.rtt
+            # print(self.current_play_seconds())
+            self.latency = server_time - current_play_time - self.rtt
         else:
             self.latency += 0 if self.freeze < 0.00001 else self.freeze # add freeze time
             self.latency += self.accumulative_latency                   # speed correction
             self.latency -= passive_jump                                # latency too high, server forces jump
             self.accumulative_latency = 0.0                             # reset speed correction
-        if self.latency < 0:
-            self.latency = server_time - self.current_play_seconds() - self.rtt
+
         # print(f"Server time: {server_time}, current: {current_play_time}")
-        
+        # self.accumulative_jump -= passive_jump
+        # self.latency = server_time - (download_start - self.base_time - self.accumulative_latency) - self.rtt
+        # print(f"Latency: {self.latency:.3f}, server time: {server_time:.3f}, current: {download_start - self.base_time:.3f}")
         ######### get bandwidth #########
         self.bw = rate / self.download_time
         
