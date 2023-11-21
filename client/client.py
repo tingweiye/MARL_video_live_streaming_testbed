@@ -233,7 +233,7 @@ class Client:
             end = time.time()
             t1 = end - start
             # print(t1, self.frame_time)
-            print(t1)
+            # print(t1)
             
     
     """
@@ -254,14 +254,12 @@ class Client:
         # Create an HTTP connection to the server
         # connection = http.client.HTTPConnection(self.server_host, self.server_port)
         # Send an HTTP GET request to the download URL
-        t1 = time.time()
         # self.connection.request('GET', download_url, headers=headers)
         
         # Check if the response status code indicates success (e.g., 200 for OK)
         try:
             response = self.connection.get(self.base_url + download_url, headers=headers)
             response.raise_for_status()
-            t2 = time.time()
             
             # Read and save the downloaded content to a local file
             # Get server time and calculate
@@ -271,7 +269,6 @@ class Client:
 
             with open('data/' + download_filename, 'wb') as local_file:
                 local_file.write(response.content)
-            t3 = time.time()
             
             # print(f"Request and response: {t2 - t1}, write: {t3 - t2}")
             # self.connection.close()
@@ -319,6 +316,9 @@ class Client:
         # if the video freezes, wait until it finishes calculating the freeze time
         self.freeze_avialable.wait()
         
+        self.latency = server_time - current_play_time - self.download_time - self.rtt
+        print(f"Latency: {self.latency:.3f}, server time: {server_time:.3f}, current: {self.current_playing:.3f}, diff: {time.time() - self.current_time}")
+        
         ######### get idle time #########
         self.idle = prepare
         # wait until buffer is not full
@@ -340,8 +340,7 @@ class Client:
         # if self.latency < 0:
         #     self.latency = server_time - self.current_play_seconds() - self.rtt
         # print(f"Server time: {server_time}, current: {current_play_time}")
-        self.latency = server_time - current_play_time - self.rtt
-        print(f"Latency: {self.latency:.3f}, server time: {server_time:.3f}, current: {self.current_playing:.3f}, diff: {time.time() - self.current_time}")
+        
         ######### get bandwidth #########
         self.bw = rate / self.download_time
         
