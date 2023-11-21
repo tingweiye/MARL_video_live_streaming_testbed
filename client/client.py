@@ -316,8 +316,8 @@ class Client:
         # if the video freezes, wait until it finishes calculating the freeze time
         self.freeze_avialable.wait()
         
-        self.latency = server_time - current_play_time - self.download_time - self.rtt
-        print(f"Latency: {self.latency:.3f}, server time: {server_time:.3f}, current: {self.current_playing:.3f}, diff: {time.time() - self.current_time}")
+        # self.latency = server_time - current_play_time - self.download_time - self.rtt
+        # print(f"Latency: {self.latency:.3f}, server time: {server_time:.3f}, current: {self.current_playing:.3f}, diff: {time.time() - self.current_time}")
         
         ######### get idle time #########
         self.idle = prepare
@@ -330,15 +330,15 @@ class Client:
         self.idle += full_end - full_start
         
         ######### get latency #########
-        # if self.latency == Config.INITIAL_DUMMY_LATENCY:
-        #     self.latency = server_time - self.current_play_seconds() - self.rtt
-        # else:
-        #     self.latency += 0 if self.freeze < 0.00001 else self.freeze # add freeze time
-        #     self.latency += self.accumulative_latency                   # speed correction
-        #     self.latency -= passive_jump                                # latency too high, server forces jump
-        #     self.accumulative_latency = 0.0                             # reset speed correction
-        # if self.latency < 0:
-        #     self.latency = server_time - self.current_play_seconds() - self.rtt
+        if self.latency == Config.INITIAL_DUMMY_LATENCY:
+            self.latency = server_time - self.current_play_seconds() - self.rtt
+        else:
+            self.latency += 0 if self.freeze < 0.00001 else self.freeze # add freeze time
+            self.latency += self.accumulative_latency                   # speed correction
+            self.latency -= passive_jump                                # latency too high, server forces jump
+            self.accumulative_latency = 0.0                             # reset speed correction
+        if self.latency < 0:
+            self.latency = server_time - self.current_play_seconds() - self.rtt
         # print(f"Server time: {server_time}, current: {current_play_time}")
         
         ######### get bandwidth #########
