@@ -209,28 +209,31 @@ class Client:
             Logger.log(f"Client {self.client_idx} playing segment {seg.idx} at rate {seg.rate}")
 
             
-            for _ in range(int(Config.SEG_DURATION * Config.FPS)):
-                time.sleep(self.frame_time / self.play_speed)
-                self.seg_left -= self.frame_time#Config.FRAME_DURATION
-                # Speed != 1 affects latency. Use accumulative_latency to avoid data integrety issue
-                if self.play_speed != 1:
-                    self.accumulative_latency -= (self.play_speed - 1) * (self.frame_time)
-            # time.sleep(time_sleep)
+            # for _ in range(int(Config.SEG_DURATION * Config.FPS)):
+            #     time.sleep(self.frame_time / self.play_speed)
+            #     self.seg_left -= self.frame_time#Config.FRAME_DURATION
+            #     # Speed != 1 affects latency. Use accumulative_latency to avoid data integrety issue
+            #     if self.play_speed != 1:
+            #         self.accumulative_latency -= (self.play_speed - 1) * (self.frame_time)
             
+            # time.sleep(time_sleep)
             # if t1 > 1:
             #     time_sleep *= ratio[0]
             # else:
             #     time_sleep *= ratio[1]
             
-            if t1 > Config.SEG_DURATION / self.play_speed:
-                self.frame_time *= ratio[0]
-            else:
-                self.frame_time *= ratio[1]
+            # if t1 > Config.SEG_DURATION / self.play_speed:
+            #     self.frame_time *= ratio[0]
+            # else:
+            #     self.frame_time *= ratio[1]
+            
+            while time.time() - self.current_time < 1:
+                time.sleep(0)
                 
             end = time.time()
             t1 = end - start
             # print(t1, self.frame_time)
-            # print(t1)
+            print(t1)
             
     
     """
