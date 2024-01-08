@@ -1,5 +1,6 @@
 client.sh
 server.sh
+*.pyc
 **/*.mp4
 **/*.csv
 **/gunicorn_config.py
