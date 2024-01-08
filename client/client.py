@@ -290,20 +290,6 @@ class Client:
     def download(self, rate, speed=1):
         print("   ")
         
-        # sl = max(2 - self.current_play_seconds()*0.05, 0)
-        # print(sl)
-        #############################################################################
-        ###################### Adaptive flow control Algorithm ######################
-        #############################################################################
-        # Use designed algorithm to control the video flow
-        # TODO 
-        # if self.algo == 'stallion':
-        #     self.solver.update_bw_latency(self.bw, self.latency)
-        #     rate, _ = self.solver.solve(self.get_buffer_size(), self.latency)
-        #############################################################################
-        ###################### Adaptive flow control Algorithm ######################
-        #############################################################################
-        
         # get the next gop and calculate the download time
         current_play_time = self.current_play_seconds()
         download_start = time.time()
