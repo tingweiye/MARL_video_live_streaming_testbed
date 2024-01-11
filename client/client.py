@@ -62,25 +62,26 @@ class Client:
         self.jump_seconds = 0
         self.seg_left = 0
         
-        self.buffer_his = []
-        self.rtt_his = []
-        self.idle_his = []
-        self.freeze_his = []
-        self.latency_his = []
-        self.download_time_his = []
-        self.rate_his = []
-        self.bw_his = []
-        self.jump_his = []
-        self.server_time_his = []
+        self.buffer_his = [0]
+        self.rtt_his = [0]
+        self.idle_his = [0]
+        self.freeze_his = [0]
+        self.latency_his = [0]
+        self.download_time_his = [0]
+        self.rate_his = [0]
+        self.bw_his = [0]
+        self.jump_his = [0]
+        self.server_time_his = [0]
         
         self.path = os.path.join(os.getcwd(), "data")
         self.test = time.time()
         year, month, day, hours, minutes, seconds, milliseconds = convert_timestamp(time.time())
-        print(f"Client start time: {year}/{month}/{day}:{hours}:{minutes}:{seconds}:{milliseconds}")
+        self.algo = algo
         
-        if algo == 'stallion':
-            self.algo = algo
-            self.solver = stallion_solver(Config.INITIAL_LATENCY)
+        print(f"Client start time: {year}/{month}/{day}:{hours}:{minutes}:{seconds}:{milliseconds}")
+        print(f"Using algorithm: {self.algo}")
+        
+
             
         # self.connection = http.client.HTTPConnection(self.server_host, self.server_port)
         self.connection = requests.Session()
@@ -236,7 +237,7 @@ class Client:
             end = time.time()
             t1 = end - start
             # print(time.time() - self.base_time)
-            print(t1)
+            # print(t1)
             
     
     """
@@ -253,7 +254,11 @@ class Client:
         
         headers = {'idx': str(self.client_idx),
                    'gop': str(self.next_gop),
-                   'rate': str(rate)}
+                   'rate': str(rate),
+                   'bw': str(self.bw_his[-1]),
+                   'buffer': str(self.buffer_his[-1]),
+                   'latency': str(self.latency_his[-1]),
+                   'algo': self.algo}
         # Create an HTTP connection to the server
         # connection = http.client.HTTPConnection(self.server_host, self.server_port)
         # Send an HTTP GET request to the download URL
@@ -267,8 +272,13 @@ class Client:
             # Read and save the downloaded content to a local file
             # Get server time and calculate
             server_time = float(response.headers.get('Server-Time'))
-            suggestion = int(response.headers.get('suggestion'))
+            suggestion = int(response.headers.get('Suggestion'))
             prepare = float(response.headers.get('Prepare-Time'))
+            if self.algo == "MARL":
+                instruction = float(response.headers.get('Instruction'))
+                exReward = float(response.headers.get('Reward'))
+            else:
+                instruction, exReward = -1, -1
 
             passive_jump = suggestion - self.next_gop - 1
             self.last_gop = suggestion - 1
@@ -277,9 +287,9 @@ class Client:
             with open('data/' + download_filename, 'wb') as local_file:
                 local_file.write(response.content)
             
-            # print(f"Request and response: {t2 - t1}, write: {t3 - t2}")
+            # print(f"Request and response: {t2 - t1}, write: {t4 - t3}, logic: {t3 - t2}")
             # self.connection.close()
-            return suggestion, prepare, passive_jump, server_time
+            return suggestion, prepare, passive_jump, server_time, instruction, exReward
         except:
             self.connection.close()
             # print(f"Failed to download. Status code: {response.status}")
@@ -294,9 +304,10 @@ class Client:
         current_play_time = self.current_play_seconds()
         download_start = time.time()
         # time.sleep(6) # simulate congestion
-        suggestion, prepare, passive_jump, server_time = self.__request_video_seg(rate)
+        suggestion, prepare, passive_jump, server_time, instruction, exReward = self.__request_video_seg(rate)
         download_end = time.time()
         self.download_time = download_end - download_start - prepare
+        print(prepare)
         
         ######### get freeze time #########
         # release block for the player to play downloaded segments
@@ -348,11 +359,13 @@ class Client:
                 self.download_time_his[-1], \
                 self.bw_his[-1], \
                 passive_jump, \
-                self.server_time_his[-1]
+                self.server_time_his[-1], \
+                instruction, \
+                exReward
         
     def update_data(self):
         
-        print(f"Buffer: {self.get_buffer_size():.3f}, Latency: {self.latency:.3f}, idle: {self.idle:.3f}, Freeze: {self.freeze:.3f}, Download time: {self.download_time:.3f}, BW: {self.bw:.3f}")
+        Logger.log(f"Buffer: {self.get_buffer_size():.3f}, Latency: {self.latency:.3f}, idle: {self.idle:.3f}, Freeze: {self.freeze:.3f}, Download time: {self.download_time:.3f}, BW: {self.bw:.3f}")
         self.buffer_his.append(self.get_buffer_size())
         # self.rtt_his = [] #TODO
         self.idle_his.append(self.idle)

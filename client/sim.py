@@ -2,14 +2,13 @@ import argparse
 import time
 from client import Client
 import sys
-from algorithms import (stallion)
+from algorithms import (stallion,
+                        pensieve,
+                        marl)
 import numpy as np
 import torch
 from torch.autograd import Variable
 import logging
-
-from algorithms.components import ac, replay_memory
-from algorithms import pensieve
 
 sys.path.append("..")
 import os
@@ -19,7 +18,7 @@ from utils.utils import *
 parser = argparse.ArgumentParser(description='Streaming client')
 parser.add_argument('--ip', default='127.0.0.1', type=str, help='ip')
 parser.add_argument('--port', default='8080', type=str, help='port')
-parser.add_argument('--algo', default='stallion', type=str, help='ABR algorithm')
+parser.add_argument('--algo', default='MARL', type=str, help='ABR algorithm')
 parser.add_argument('--sleep', default=0, type=float, help='Wait time')
 args = parser.parse_args()
 
@@ -42,7 +41,7 @@ class Simulator:
             for i in range(610):
                 self.solver.update_bw_latency(self.client.bw, self.client.latency)
                 rate, _ = self.solver.solve(self.client.get_buffer_size(), self.client.latency)
-                latency, idle, buffer_size, freeze, download_time, bw, jump, server_time = self.client.download(rate)
+                latency, idle, buffer_size, freeze, download_time, bw, jump, server_time, _, _ = self.client.download(rate)
             log_file.write(str(server_time) + '\t' +
                         str(rate) + '\t' +
                         str(bw) + '\t' +
@@ -57,6 +56,21 @@ class Simulator:
     def pensieveRun(self):
         self.solver = pensieve.pensieve_solver(self.client)
         self.solver.solve()
+        
+    def marlRun(self):
+        self.solver = marl.marl_solver(self.client)
+        self.solver.solve()
+        
+    def run(self):
+        if self.algo == "STALLION":
+            self.stallionRun()
+        elif self.algo == "PENSIEVE":
+            self.pensieveRun()
+        elif self.algo == "MARL":
+            self.marlRun()
+        else:
+            print("No such algorithm, please select a valid algorithm.")
+            exit()
 
 
 if __name__ == '__main__':
@@ -65,5 +79,5 @@ if __name__ == '__main__':
     sim = Simulator(args.algo)
 
     sim.start()
-    sim.pensieveRun()
+    sim.run()
     # sim.stallionRun()

@@ -1,4 +1,5 @@
 from algorithms.marl_server import marl_server
+from algorithms.pesudo_server import pesudo_server
 import time
 import os
 import sys
@@ -9,16 +10,20 @@ from utils.config import Config
 
 class Server:
     
-    def __init__(self, algo=None):
+    def __init__(self, algo="PESUDO"):
         
         # client info
         self.first_time = True
         self.client_num = 0
-        self.max_client_num = 100
-        self.client_list = {}
-        if algo == 'marl':      
+        self.max_client_num = 100     
+        if algo == "MARL":
             self.algo = marl_server()
-        self.max_idx = 0
+        else:
+            self.algo = pesudo_server()
+            
+        print(f"Using algorithm {algo}")
+        
+        self.next_idx = 0
         self.suggestion_diff = 0
         assert self.suggestion_diff >= 0 and self.suggestion_diff < Config.SERVER_MAX_BUFFER_LEN
         # server info
@@ -27,15 +32,17 @@ class Server:
         self.encoder.start()
         
     def register_client(self):
-        if (self.max_idx >= self.max_client_num):
+        if (self.next_idx >= self.max_client_num):
             return -1
-        new_idx = self.max_idx
-        client = client_info(new_idx)
+        new_idx = self.next_idx
+
         if self.first_time:
             time.sleep(1)
             self.first_time = False
-        self.client_list[new_idx] = client
-        self.max_idx += 1 
+            
+        self.algo.add_client(new_idx)
+        
+        self.next_idx += 1 
         self.client_num += 1
         
         # wait until there is something to download
@@ -46,7 +53,7 @@ class Server:
         return new_idx, self.jump_suggestion()
         
     def client_exit(self, idx):
-        self.client_list.pop(idx)
+        self.algo.remove_client(idx)
         self.client_num -= 1
         
     def get_server_time(self):
@@ -55,7 +62,8 @@ class Server:
     def jump_suggestion(self):
         return max(0, self.encoder.check_range()[1] - self.suggestion_diff)
     
-    def process_request(self, request_gop, request_rate):
+    def process_request(self, client_idx, request_gop, request_rate):
+        # wait until the gop is generated
         start = time.time()
         while(request_gop > self.encoder.check_range()[1]):
             time.sleep(0)
@@ -63,6 +71,7 @@ class Server:
         prepare = end - start
         lower, upper = self.encoder.check_range()
         # t1 = time.time()
+        # Examine if the requested gop is lagging too much
         if lower > request_gop:
             suggestion = self.jump_suggestion()
             video_idx = suggestion
@@ -72,10 +81,15 @@ class Server:
             video_idx = request_gop
             suggestion = request_gop + 1
             video_filename = f"{video_idx}_{request_rate:.1f}" + Config.VIDEO_FORMAT
-        t2 = time.time()
+        # t2 = time.time()
         # print(f"In processing: wait: {prepare}, check: {t1 - end}, suggest: {t2 - t1}")
         return suggestion, video_filename, prepare
-            
+    
+    def update_client(self, idx, rate, bw, buffer, latency):
+        self.algo.update_info(idx, rate, bw, buffer, latency)
+        
+    def coordinate_agent(self, idx):
+        return self.algo.orchestrate(idx)
 
 # A pesudo encoder
 class LiveEncoder(threading.Thread):
@@ -137,11 +151,5 @@ class LiveEncoder(threading.Thread):
             # print(self.low, self.high, self.get_server_time())
             
 
-class client_info:
-    
-    def __init__(self, idx):
-        self.client_idx = idx
-        
-        self.last_action = None
-        self.last_latency = -1
+
         

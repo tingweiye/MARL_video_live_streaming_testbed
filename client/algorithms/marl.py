@@ -9,7 +9,7 @@ from utils.config import Config
 
 
 
-S_INFO = 7  # latency, idle, buffer_size, freeze, download_time, bw, last_rate
+S_INFO = 8  # rate, bw, downloading time, latency, freeze, idle, buffer, suggestion
 S_LEN = 8  # take how many gops in the past
 A_DIM = len(Config.BITRATE)
 ACTOR_LR_RATE = 0.0001
@@ -23,18 +23,21 @@ HD_REWARD = [1, 2, 3, 12, 15, 20]
 BUFFER_NORM_FACTOR = Config.CLIENT_MAX_BUFFER_LEN + 1
 CHUNK_TIL_VIDEO_END_CAP = 48.0
 M_IN_K = 1000.0
-QUALTITY_COEF = 3
+QUALTITY_COEF = 1
 REBUF_PENALTY = 4.3  # 1 sec rebuffering -> 3 Mbps
-FREEZE_PENALTY = 25
-LATENCY_PENALTY = 0.3
-JUMP_PENALTY = 2
-SMOOTH_PENALTY = 3
+FREEZE_PENALTY = 8
+LATENCY_PENALTY = 0.1
+JUMP_PENALTY = 0.6
+SMOOTH_PENALTY = 1
 DEFAULT_QUALITY = Config.INITIAL_RATE  # default video quality without agent
 RANDOM_SEED = 42
 RAND_RANGE = 1000
+FAIRNESS_COEF = 0.8
+
 SUMMARY_DIR = './results'
 PENSIEVE_LOG_FILE = './results/pensieve/log'
 STALLION_LOG_FILE = './results/stallion/log'
+MARL_LOG_FILE = './results/marl/log'
 TEST_LOG_FOLDER = './test_results/'
 TRAIN_TRACES = './data/cooked_traces/'
 
@@ -50,7 +53,7 @@ dtype = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTens
 dlongtype = torch.cuda.LongTensor if torch.cuda.is_available() else torch.LongTensor
 
 
-class pensieve_solver:
+class marl_solver:
     
     def __init__(self, client):
         self.client = client
@@ -62,8 +65,8 @@ class pensieve_solver:
     
         with open(PENSIEVE_LOG_FILE + '_record', 'w') as log_file, open(PENSIEVE_LOG_FILE + '_test', 'w') as test_log_file:
 
-            model_actor = ac.Actor(A_DIM).type(dtype)
-            model_critic = ac.Critic(A_DIM).type(dtype)
+            model_actor = ac.MActor(A_DIM).type(dtype)
+            model_critic = ac.MCritic(A_DIM).type(dtype)
 
             model_actor.train()
             model_critic.train()
@@ -86,6 +89,7 @@ class pensieve_solver:
             state[4, -1] = float(self.client.freeze)  # mega byte
             state[5, -1] = float(self.client.idle)
             state[6, -1] = self.client.get_buffer_size() / BUFFER_NORM_FACTOR  # 10 sec
+            state[7, -1] = 0  # no suggestion
 
             done = True
             epoch = 0
@@ -127,7 +131,7 @@ class pensieve_solver:
                         actions.append(torch.tensor([action]))
                         states.append(state.unsqueeze(0))
 
-                        latency, idle, buffer_size, freeze, download_time, bw, jump, server_time, _, _ = self.client.download(rate, "PENSIEVE")
+                        latency, idle, buffer_size, freeze, download_time, bw, jump, server_time, instruction, exReward = self.client.download(rate, "PENSIEVE")
                         
                         time_stamp = server_time
 
@@ -139,10 +143,12 @@ class pensieve_solver:
                                 - FREEZE_PENALTY * freeze \
                                 - LATENCY_PENALTY* latency \
                                 - JUMP_PENALTY   * jump \
-                                - SMOOTH_PENALTY * np.abs(log_rate - log_last_rate) 
+                                - SMOOTH_PENALTY * np.abs(log_rate - log_last_rate) \
+                        
+                        reward = FAIRNESS_COEF * reward + (1 - FAIRNESS_COEF) * QUALTITY_COEF * log_rate
                                 
                         # reward_max = 2.67
-                        # print(f"Get reward: {reward}, log_rate: {log_rate}, freeze: {freeze}, latency: {latency}")
+                        print(f"Get reward: {reward}, log_rate: {log_rate}, freeze: {freeze}, latency: {latency}")
                         # reward = float(max(min(reward, reward_max), -4*reward_max) / reward_max)
                         rewards.append(reward)
                         rewards_comparison.append(torch.tensor([reward]))
@@ -161,6 +167,7 @@ class pensieve_solver:
                         state[4, -1] = float(freeze)  # mega byte
                         state[5, -1] = float(idle)
                         state[6, -1] = buffer_size / BUFFER_NORM_FACTOR  # 10 sec
+                        state[7, -1] = instruction  # suggestion
 
                         state = torch.from_numpy(state)
 
@@ -197,9 +204,9 @@ class pensieve_solver:
                     memory.push([states, actions, returns, advantages])
             
                 # policy grad updates:
-                model_actor_old = ac.Actor(A_DIM).type(dtype)
+                model_actor_old = ac.MActor(A_DIM).type(dtype)
                 model_actor_old.load_state_dict(model_actor.state_dict())
-                model_critic_old = ac.Critic(A_DIM).type(dtype)
+                model_critic_old = ac.MCritic(A_DIM).type(dtype)
                 model_critic_old.load_state_dict(model_critic.state_dict())
 
                 ## actor update
@@ -266,8 +273,8 @@ class pensieve_solver:
                     if epoch % UPDATE_INTERVAL == 0:
                         logging.info("Model saved in file")
                         add_str = 'ppo'
-                        actor_model_save_path = "./models/pensieve/%s_%s_%d_actor.model" %(str('abr'), add_str, int(epoch))
-                        critic_model_save_path = "./models/pensieve/%s_%s_%d_critic.model" %(str('abr'), add_str, int(epoch))
+                        actor_model_save_path = "./models/marl/%s_%s_%d_actor.model" %(str('abr'), add_str, int(epoch))
+                        critic_model_save_path = "./models/marl/%s_%s_%d_critic.model" %(str('abr'), add_str, int(epoch))
                         torch.save(model_actor.state_dict(), actor_model_save_path)
                         torch.save(model_critic.state_dict(), critic_model_save_path)
                         # entropy_weight = 0.95 * entropy_weight
