@@ -307,7 +307,6 @@ class Client:
         suggestion, prepare, passive_jump, server_time, instruction, exReward = self.__request_video_seg(rate)
         download_end = time.time()
         self.download_time = download_end - download_start - prepare
-        print(prepare)
         
         ######### get freeze time #########
         # release block for the player to play downloaded segments
