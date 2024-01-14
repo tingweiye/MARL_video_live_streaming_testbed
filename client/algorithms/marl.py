@@ -59,11 +59,11 @@ class marl_solver:
         self.client = client
     
     def solve(self, train=True):
-        logging.basicConfig(filename=PENSIEVE_LOG_FILE + '_central',
+        logging.basicConfig(filename=MARL_LOG_FILE + '_central',
                         filemode='w',
                         level=logging.INFO)
     
-        with open(PENSIEVE_LOG_FILE + '_record', 'w') as log_file, open(PENSIEVE_LOG_FILE + '_test', 'w') as test_log_file:
+        with open(MARL_LOG_FILE + '_record', 'w') as log_file, open(MARL_LOG_FILE + '_test', 'w') as test_log_file:
 
             model_actor = ac.MActor(A_DIM).type(dtype)
             model_critic = ac.MCritic(A_DIM).type(dtype)
@@ -168,7 +168,7 @@ class marl_solver:
                         state[5, -1] = float(idle)
                         state[6, -1] = buffer_size / BUFFER_NORM_FACTOR  # 10 sec
                         state[7, -1] = instruction  # suggestion
-
+                        
                         state = torch.from_numpy(state)
 
                     # log time_stamp, rate, buffer_size, reward
@@ -180,7 +180,8 @@ class marl_solver:
                                     str(idle) + '\t' +
                                     str(latency) + '\t' +
                                     str(jump) + '\t' +
-                                    str(reward) + '\n')
+                                    str(reward) + '\t' + 
+                                    str(instruction) + '\n')
                         log_file.flush()
 
                     # one last step
