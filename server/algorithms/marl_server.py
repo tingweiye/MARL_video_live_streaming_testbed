@@ -26,15 +26,16 @@ class marl_server:
         esTotalBW = np.array([x.bw for _, x in self.client_list.items()]).sum()
         client_bw = self.client_list[idx].bw
         fair_bw = esTotalBW / self.num_agent
+        faircoe = abs(client_bw - fair_bw) / Config.BITRATE[-1] - Config.BITRATE[0]
         
-        if abs(client_bw - fair_bw) < 1.5:
+        if abs(client_bw - fair_bw) < 1.0:
             instruction = 0
-        elif client_bw - fair_bw >= 1.5:
-            instruction = -1
+        elif client_bw - fair_bw >= 1.0:
+            instruction = -faircoe
         else:
-            instruction = 1
+            instruction = faircoe
             
-        exCoef = 1 - abs(client_bw - fair_bw) / Config.BITRATE[-1] - Config.BITRATE[0]
+        exCoef = 1 - faircoe
         
         return instruction, exCoef
     

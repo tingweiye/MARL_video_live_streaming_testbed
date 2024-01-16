@@ -34,6 +34,9 @@ class Simulator:
         self.client.register()
         self.client.start()
         
+    def stop(self):
+        self.client.exit()
+        
     def stallionRun(self):
         self.solver = stallion.stallion_solver(Config.INITIAL_LATENCY)
         
@@ -80,4 +83,5 @@ if __name__ == '__main__':
 
     sim.start()
     sim.run()
+    sim.stop()
     # sim.stallionRun()

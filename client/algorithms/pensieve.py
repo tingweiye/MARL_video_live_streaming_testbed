@@ -91,10 +91,10 @@ class pensieve_solver:
             epoch = 0
             time_stamp = 0
 
-            exploration_size = 4
-            episode_steps = 10 ############ testing!!!!!!
+            exploration_size = 8
+            episode_steps = 32 ############ testing!!!!!!
             update_num = 1
-            batch_size = 20
+            batch_size = 64
             gamma = 0.99
             gae_param = 0.95
             clip = 0.2
