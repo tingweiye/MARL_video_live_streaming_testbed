@@ -31,9 +31,9 @@ class marl_server:
         if abs(client_bw - fair_bw) < 1.0:
             instruction = 0
         elif client_bw - fair_bw >= 1.0:
-            instruction = -faircoe
+            instruction = -1
         else:
-            instruction = faircoe
+            instruction = 1
             
         exCoef = 1 - faircoe
         
