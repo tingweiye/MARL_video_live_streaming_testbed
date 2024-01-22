@@ -9,11 +9,14 @@ class marl_server:
     def __init__(self):
         self.client_list = {}
         self.num_agent = 0
+        self.sum_weights = 0
         
-    def add_client(self, idx, rate=0, buffer=0, latency=0):
-        info = client_info(idx)
+    def add_client(self, idx, weight=1, rate=0, buffer=0, latency=0):
+        info = client_info(idx, weight)
         self.client_list[idx] = info
         self.num_agent += 1
+        self.sum_weights += weight
+        print(self.sum_weights)
     
     def remove_client(self, idx):
         self.client_list.pop(idx)
@@ -25,8 +28,9 @@ class marl_server:
     def orchestrate(self, idx):
         esTotalBW = np.array([x.bw for _, x in self.client_list.items()]).sum()
         client_bw = self.client_list[idx].bw
-        fair_bw = esTotalBW / self.num_agent
-        faircoe = abs(client_bw - fair_bw) / Config.BITRATE[-1] - Config.BITRATE[0]
+        client_weight = self.client_list[idx].weight
+        fair_bw =  (client_weight / self.sum_weights) * esTotalBW
+        faircoe = abs(client_bw - fair_bw) / esTotalBW
         
         if abs(client_bw - fair_bw) < 1.0:
             instruction = 0

@@ -20,6 +20,7 @@ parser.add_argument('--ip', default='127.0.0.1', type=str, help='ip')
 parser.add_argument('--port', default='8080', type=str, help='port')
 parser.add_argument('--algo', default='MARL', type=str, help='ABR algorithm')
 parser.add_argument('--sleep', default=0, type=float, help='Wait time')
+parser.add_argument('--weight', default=1, type=float, help='Weight of a client')
 args = parser.parse_args()
 
 STALLION_LOG_FILE = './results/stallion/log'
@@ -27,7 +28,7 @@ STALLION_LOG_FILE = './results/stallion/log'
 class Simulator:
     
     def __init__(self, algo):
-        self.client = Client(args.ip, args.port, args.algo)
+        self.client = Client(args.ip, args.port, args.algo, args.weight)
         self.algo = algo
         
     def start(self):
@@ -61,7 +62,7 @@ class Simulator:
         self.solver.solve()
         
     def marlRun(self):
-        self.solver = marl.marl_solver(self.client)
+        self.solver = marl.marl_solver(self.client, args.weight)
         self.solver.solve()
         
     def run(self):

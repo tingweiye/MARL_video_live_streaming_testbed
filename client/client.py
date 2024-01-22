@@ -26,9 +26,10 @@ class req_info:
 
 class Client:
     
-    def __init__(self, host, port, algo):
+    def __init__(self, host, port, algo, weight=1):
         self.server_host = host
         self.server_port = port
+        self.client_weight = weight
         self.base_url = f'http://{host}:{port}'
         self.base_register_url = '/videoServer/register'
         self.base_exit_url = '/videoServer/exit'
@@ -69,7 +70,7 @@ class Client:
         self.latency_his = [0]
         self.download_time_his = [0]
         self.rate_his = [0]
-        self.bw_his = [0]
+        self.bw_his = [1]
         self.jump_his = [0]
         self.server_time_his = [0]
         
@@ -79,7 +80,7 @@ class Client:
         self.algo = algo
         
         print(f"Client start time: {year}/{month}/{day}:{hours}:{minutes}:{seconds}:{milliseconds}")
-        print(f"Using algorithm: {self.algo}")
+        print(f"Using algorithm: {self.algo} Client weight: {self.client_weight}")
         
 
             
@@ -92,13 +93,10 @@ class Client:
     
     # register to the server when first connected to it
     def register(self):
-        # connection = http.client.HTTPConnection(self.server_host, self.server_port)
+        headers = {'weight': str(self.client_weight)}
         
-        # self.connection.request('POST', self.base_register_url)
-        
-        # response = self.connection.getresponse()
         try:
-            response = self.connection.post(self.base_url + self.base_register_url)
+            response = self.connection.post(self.base_url + self.base_register_url, headers=headers)
             response.raise_for_status()
             
             self.client_idx = int(response.headers.get('idx'))
@@ -301,7 +299,6 @@ class Client:
         print("   ")
         
         # get the next gop and calculate the download time
-        current_play_time = self.current_play_seconds()
         download_start = time.time()
         # time.sleep(6) # simulate congestion
         suggestion, prepare, passive_jump, server_time, instruction, exReward = self.__request_video_seg(rate)
@@ -324,20 +321,21 @@ class Client:
         full_end = time.time()
         self.idle += full_end - full_start
         
+        current_play_time = self.current_play_seconds()
         ######### get latency #########
-        # if self.latency == Config.INITIAL_DUMMY_LATENCY:
-        #     # print(self.current_play_seconds())
-        #     self.latency = server_time - current_play_time - self.rtt
-        # else:
-        #     self.latency += 0 if self.freeze < 0.00001 else self.freeze # add freeze time
-        #     self.latency += self.accumulative_latency                   # speed correction
-        #     self.latency -= passive_jump                                # latency too high, server forces jump
-        #     self.accumulative_latency = 0.0                             # reset speed correction
+        if self.latency == Config.INITIAL_DUMMY_LATENCY:
+            # print(self.current_play_seconds())
+            self.latency = server_time + prepare - (time.time() - self.base_time - self.accumulative_latency) - self.rtt
+        else:
+            self.latency += 0 if self.freeze < 0.00001 else self.freeze # add freeze time
+            self.latency += self.accumulative_latency                   # speed correction
+            self.latency -= passive_jump                                # latency too high, server forces jump
+            self.accumulative_latency = 0.0                             # reset speed correction
 
         # print(f"Server time: {server_time}, current: {current_play_time}")
-        self.accumulative_jump -= passive_jump
-        self.latency = server_time - (download_start - self.base_time - self.accumulative_latency) - self.rtt
-        print(f"Latency: {self.latency:.3f}, server time: {server_time:.3f}, current: {download_start - self.base_time:.3f}")
+        # self.accumulative_jump -= passive_jump
+        # self.latency = server_time + prepare - (time.time() - self.base_time - self.accumulative_latency) - self.rtt
+        # print(f"Latency: {self.latency:.3f}, server time: {server_time:.3f}, current: {time.time() - self.base_time:.3f}")
         ######### get bandwidth #########
         self.bw = rate / self.download_time
         

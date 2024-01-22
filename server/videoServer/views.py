@@ -43,6 +43,7 @@ async def download_video(request, video_filename):
     algo = request.META.get('HTTP_ALGO')
     
     # t1 = time.time()
+    server_time = server.get_server_time()
     suggestion, video_filename, prepare = server.process_request(client_idx, request_gop, request_rate)
     server.update_client(client_idx, request_rate, estimated_bw, client_buffer, client_latency)
     
@@ -58,7 +59,7 @@ async def download_video(request, video_filename):
             
         response['Content-Type'] = 'video/mp4'
         response['Content-Disposition'] = f'attachment; filename="{video_filename}"'
-        response['Server-Time'] = server.get_server_time()
+        response['Server-Time'] = server_time
         response['Prepare-Time'] = prepare
         response['Suggestion'] = suggestion
         if algo == "MARL":
@@ -81,7 +82,8 @@ async def download_video(request, video_filename):
 @csrf_exempt
 def client_register(request):
     with shared_register_lock:
-        idx, suggestion = server.register_client()
+        weight = float(request.META.get('HTTP_WEIGHT'))
+        idx, suggestion = server.register_client(weight)
         Logger.log(f"Client {idx} successfully connected to the server")
     
     response = HttpResponse(f"Client {idx} registered")

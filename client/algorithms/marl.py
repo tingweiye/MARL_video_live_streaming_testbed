@@ -54,8 +54,9 @@ dlongtype = torch.cuda.LongTensor if torch.cuda.is_available() else torch.LongTe
 
 class marl_solver:
     
-    def __init__(self, client):
+    def __init__(self, client, weight=1):
         self.client = client
+        self.weight = weight
         self.state = np.zeros((S_INFO,S_LEN))
         self.state = torch.from_numpy(self.state)
         
@@ -77,7 +78,7 @@ class marl_solver:
         
         return self.state
         
-    def getReward(self, rate, last_rate, freeze, latency, jump):
+    def getReward(self, rate, last_rate, freeze, latency, jump, fair_coef=FAIRNESS_COEF):
         # -- log scale reward --
         log_rate = np.log(rate)
         log_last_rate = np.log(last_rate)
@@ -88,7 +89,7 @@ class marl_solver:
                 - JUMP_PENALTY   * jump \
                 - SMOOTH_PENALTY * np.abs(log_rate - log_last_rate) \
         
-        reward = FAIRNESS_COEF * reward + (1 - FAIRNESS_COEF) * QUALTITY_COEF * log_rate
+        reward = fair_coef * reward + (1 - fair_coef) * QUALTITY_COEF * log_rate
         
         return reward
                         
@@ -158,12 +159,13 @@ class marl_solver:
                         actions.append(torch.tensor([action]))
                         states.append(self.state.unsqueeze(0))
 
-                        latency, idle, buffer_size, freeze, download_time, bw, jump, server_time, instruction, exReward = self.client.download(rate, "PENSIEVE")
+                        latency, idle, buffer_size, freeze, download_time, bw, jump, server_time, instruction, fair_coef = self.client.download(rate, "PENSIEVE")
                         
                         time_stamp = server_time
-
+                        # print(fair_coef)
                         # get reward
-                        reward = self.getReward(rate, last_rate, freeze, latency, jump)
+                        reward = self.getReward(rate, last_rate, freeze, latency, jump, fair_coef)
+                        # print(reward)
                                 
                         # reward_max = 2.67
                         # print(f"Get reward: {reward}, log_rate: {log_rate}, freeze: {freeze}, latency: {latency}")

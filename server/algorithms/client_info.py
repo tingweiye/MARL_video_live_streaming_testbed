@@ -4,8 +4,9 @@ from utils.config import Config
 
 class client_info:
     
-    def __init__(self, idx):
+    def __init__(self, idx, weight=1):
         self.client_idx = idx
+        self.weight = weight
         self.rate, self.bw, self.buffer, self.latency = 0, 0, 0, 0
         self.rate_his, self.bw_his, self.buffer_his, self.latency_his = [], [], [], []
         

@@ -31,7 +31,7 @@ class Server:
         self.encoder = LiveEncoder()
         self.encoder.start()
         
-    def register_client(self):
+    def register_client(self, weight):
         if (self.next_idx >= self.max_client_num):
             return -1
         new_idx = self.next_idx
@@ -39,8 +39,8 @@ class Server:
         if self.first_time:
             time.sleep(1)
             self.first_time = False
-            
-        self.algo.add_client(new_idx)
+
+        self.algo.add_client(new_idx, weight)
         
         self.next_idx += 1 
         self.client_num += 1
