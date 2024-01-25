@@ -153,7 +153,7 @@ class MActor(torch.nn.Module):
 
         self.actor_conv1 = nn.Conv1d(self.input_channel, channel_cnn, 4) # rate
         self.actor_conv2 = nn.Conv1d(self.input_channel, channel_cnn, 4) # bw
-        self.actor_conv3 = nn.Conv1d(self.input_channel, channel_cnn, 4) # download time
+        # self.actor_conv3 = nn.Conv1d(self.input_channel, channel_cnn, 4) # download time
         self.actor_fc_1 = nn.Linear(self.input_channel, channel_fc) # latency
         self.actor_fc_2 = nn.Linear(self.input_channel, channel_fc) # freeze
         self.actor_fc_3 = nn.Linear(self.input_channel, channel_fc) # idle
@@ -161,7 +161,7 @@ class MActor(torch.nn.Module):
         self.actor_fc_5 = nn.Linear(self.input_channel, channel_fc) # suggestion
 
         #===================Hide layer=========================
-        incoming_size = 3*channel_cnn*5 + 5 * channel_fc  #+ 1 * channel_cnn*3
+        incoming_size = 2*channel_cnn*5 + 5 * channel_fc  #+ 1 * channel_cnn*3
 
         self.fc1 = nn.Linear(in_features=incoming_size, out_features= channel_fc)
         # self.fc2 = nn.Linear(in_features=channel_fc, out_features=channel_fc)
@@ -175,12 +175,12 @@ class MActor(torch.nn.Module):
         bandwitdh_batch = inputs[:, 1:2, :]
         bandwitdh_batch = self.bn(bandwitdh_batch)
 
-        download_time_batch = inputs[:, 2:3, :]
-        download_time_batch = self.bn(download_time_batch)
+        # download_time_batch = inputs[:, 2:3, :]
+        # download_time_batch = self.bn(download_time_batch)
 
         x_1 = F.relu(self.actor_conv1(rates_batch))
         x_2 = F.relu(self.actor_conv2(bandwitdh_batch))
-        x_3 = F.relu(self.actor_conv3(download_time_batch))
+        # x_3 = F.relu(self.actor_conv3(download_time_batch))
         x_4 = F.relu(self.actor_fc_1(inputs[:, 3:4, -1]))
         x_5 = F.relu(self.actor_fc_2(inputs[:, 4:5, -1]))
         x_6 = F.relu(self.actor_fc_3(inputs[:, 5:6, -1]))
@@ -189,14 +189,14 @@ class MActor(torch.nn.Module):
 
         x_1 = x_1.view(-1, self.num_flat_features(x_1))
         x_2 = x_2.view(-1, self.num_flat_features(x_2))
-        x_3 = x_3.view(-1, self.num_flat_features(x_3))
+        # x_3 = x_3.view(-1, self.num_flat_features(x_3))
         x_4 = x_4.view(-1, self.num_flat_features(x_4))
         x_5 = x_5.view(-1, self.num_flat_features(x_5))
         x_6 = x_6.view(-1, self.num_flat_features(x_6))
         x_7 = x_7.view(-1, self.num_flat_features(x_7))
         x_8 = x_8.view(-1, self.num_flat_features(x_8))
 
-        x = torch.cat([x_1, x_2, x_3, x_4, x_5, x_6, x_7, x_8], 1)
+        x = torch.cat([x_1, x_2, x_4, x_5, x_6, x_7, x_8], 1)
         x = F.relu(self.fc1(x))
         # actor
         # actor = F.relu(self.fc1(x))
@@ -223,7 +223,7 @@ class MCritic(torch.nn.Module):
 
         self.actor_conv1 = nn.Conv1d(self.input_channel, channel_cnn, 4) # rate
         self.actor_conv2 = nn.Conv1d(self.input_channel, channel_cnn, 4) # bw
-        self.actor_conv3 = nn.Conv1d(self.input_channel, channel_cnn, 4) # download time
+        # self.actor_conv3 = nn.Conv1d(self.input_channel, channel_cnn, 4) # download time
         self.actor_fc_1 = nn.Linear(self.input_channel, channel_fc) # latency
         self.actor_fc_2 = nn.Linear(self.input_channel, channel_fc) # freeze
         self.actor_fc_3 = nn.Linear(self.input_channel, channel_fc) # idle
@@ -231,7 +231,7 @@ class MCritic(torch.nn.Module):
         self.actor_fc_5 = nn.Linear(self.input_channel, channel_fc) # suggestion
 
         #===================Hide layer=========================
-        incoming_size = 3*channel_cnn*5 + 5 * channel_fc  #+ 1 * channel_cnn*3
+        incoming_size = 2*channel_cnn*5 + 5 * channel_fc  #+ 1 * channel_cnn*3
 
         self.fc1 = nn.Linear(in_features=incoming_size, out_features= channel_fc)
         # self.fc2 = nn.Linear(in_features=channel_fc, out_features=channel_fc)
@@ -244,12 +244,12 @@ class MCritic(torch.nn.Module):
         bandwitdh_batch = inputs[:, 1:2, :]
         bandwitdh_batch = self.bn(bandwitdh_batch)
 
-        download_time_batch = inputs[:, 2:3, :]
-        download_time_batch = self.bn(download_time_batch)
+        # download_time_batch = inputs[:, 2:3, :]
+        # download_time_batch = self.bn(download_time_batch)
 
         x_1 = F.relu(self.actor_conv1(rates_batch))
         x_2 = F.relu(self.actor_conv2(bandwitdh_batch))
-        x_3 = F.relu(self.actor_conv3(download_time_batch))
+        # x_3 = F.relu(self.actor_conv3(download_time_batch))
         x_4 = F.relu(self.actor_fc_1(inputs[:, 3:4, -1]))
         x_5 = F.relu(self.actor_fc_2(inputs[:, 4:5, -1]))
         x_6 = F.relu(self.actor_fc_3(inputs[:, 5:6, -1]))
@@ -258,14 +258,14 @@ class MCritic(torch.nn.Module):
 
         x_1 = x_1.view(-1, self.num_flat_features(x_1))
         x_2 = x_2.view(-1, self.num_flat_features(x_2))
-        x_3 = x_3.view(-1, self.num_flat_features(x_3))
+        # x_3 = x_3.view(-1, self.num_flat_features(x_3))
         x_4 = x_4.view(-1, self.num_flat_features(x_4))
         x_5 = x_5.view(-1, self.num_flat_features(x_5))
         x_6 = x_6.view(-1, self.num_flat_features(x_6))
         x_7 = x_7.view(-1, self.num_flat_features(x_7))
         x_8 = x_8.view(-1, self.num_flat_features(x_8))
 
-        x = torch.cat([x_1, x_2, x_3, x_4, x_5, x_6, x_7, x_8], 1)
+        x = torch.cat([x_1, x_2, x_4, x_5, x_6, x_7, x_8], 1)
         x = F.relu(self.fc1(x))
         # critic
         # critic = F.relu(self.fc1(x))

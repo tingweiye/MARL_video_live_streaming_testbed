@@ -28,6 +28,7 @@ FREEZE_PENALTY = 25
 LATENCY_PENALTY = 0.3
 JUMP_PENALTY = 2
 SMOOTH_PENALTY = 4
+INSTRUCTION_REWARD = 5
 DEFAULT_QUALITY = Config.INITIAL_RATE  # default video quality without agent
 RANDOM_SEED = 42
 RAND_RANGE = 1000
@@ -67,7 +68,7 @@ class marl_solver:
         # this should be S_INFO number of terms
         self.state[0, -1] = rate / float(np.max(VIDEO_BIT_RATE))  # last quality
         self.state[1, -1] = float(bw)
-        self.state[2, -1] = float(download_time)
+        # self.state[2, -1] = float(download_time)
         self.state[3, -1] = float(latency) / BUFFER_NORM_FACTOR
         self.state[4, -1] = float(freeze)  # mega byte
         self.state[5, -1] = float(idle)
@@ -78,16 +79,18 @@ class marl_solver:
         
         return self.state
         
-    def getReward(self, rate, last_rate, freeze, latency, jump, fair_coef=FAIRNESS_COEF):
+    def getReward(self, rate, last_rate, freeze, latency, jump, fair_coef=FAIRNESS_COEF, last_instruction=0):
         # -- log scale reward --
         log_rate = np.log(rate)
         log_last_rate = np.log(last_rate)
+        log_diff = log_rate - log_last_rate
         
         reward =  QUALTITY_COEF  * log_rate \
                 - FREEZE_PENALTY * freeze \
                 - LATENCY_PENALTY* latency \
                 - JUMP_PENALTY   * jump \
-                - SMOOTH_PENALTY * np.abs(log_rate - log_last_rate) \
+                - SMOOTH_PENALTY * np.abs(log_diff) \
+                + INSTRUCTION_REWARD * last_instruction * log_diff
         
         reward = fair_coef * reward + (1 - fair_coef) * QUALTITY_COEF * log_rate
         
@@ -114,6 +117,7 @@ class marl_solver:
 
             
             last_rate = DEFAULT_QUALITY
+            last_instruction = 0
             rate = DEFAULT_QUALITY
             # action_vec = np.zeros(A_DIM)
             # action_vec[rate] = 1
@@ -131,6 +135,7 @@ class marl_solver:
             gae_param = 0.95
             clip = 0.2
             ent_coeff = 0.98
+            instruction = 0
             memory = replay_memory.ReplayMemory(exploration_size * episode_steps)
             # memory = ReplayMemory()
 
@@ -164,7 +169,7 @@ class marl_solver:
                         time_stamp = server_time
                         # print(fair_coef)
                         # get reward
-                        reward = self.getReward(rate, last_rate, freeze, latency, jump, fair_coef)
+                        reward = self.getReward(rate, last_rate, freeze, latency, jump, fair_coef, last_instruction)
                         # print(reward)
                                 
                         # reward_max = 2.67
@@ -174,6 +179,7 @@ class marl_solver:
                         rewards_comparison.append(torch.tensor([reward]))
 
                         last_rate = rate
+                        last_instruction = instruction
                         total_bw += bw
                         
                         # state = torch.from_numpy(state)
