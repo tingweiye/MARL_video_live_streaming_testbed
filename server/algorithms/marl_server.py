@@ -40,6 +40,7 @@ class marl_server:
             instruction = client_bw - fair_bw + 0.5
             
         exCoef = 1 - faircoe
+        # print(instruction, client_bw, fair_bw, esTotalBW)
         
-        return instruction, exCoef
+        return instruction, fair_bw, exCoef
     

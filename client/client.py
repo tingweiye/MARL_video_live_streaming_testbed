@@ -274,6 +274,7 @@ class Client:
             prepare = float(response.headers.get('Prepare-Time'))
             if self.algo == "MARL":
                 instruction = float(response.headers.get('Instruction'))
+                fair_bw = float(response.headers.get('Fairbw'))
                 exReward = float(response.headers.get('Reward'))
             else:
                 instruction, exReward = -1, -1
@@ -287,7 +288,7 @@ class Client:
             
             # print(f"Request and response: {t2 - t1}, write: {t4 - t3}, logic: {t3 - t2}")
             # self.connection.close()
-            return suggestion, prepare, passive_jump, server_time, instruction, exReward
+            return suggestion, prepare, passive_jump, server_time, instruction, fair_bw, exReward
         except:
             self.connection.close()
             # print(f"Failed to download. Status code: {response.status}")
@@ -301,7 +302,7 @@ class Client:
         # get the next gop and calculate the download time
         download_start = time.time()
         # time.sleep(6) # simulate congestion
-        suggestion, prepare, passive_jump, server_time, instruction, exReward = self.__request_video_seg(rate)
+        suggestion, prepare, passive_jump, server_time, instruction, fair_bw, exReward = self.__request_video_seg(rate)
         download_end = time.time()
         self.download_time = download_end - download_start - prepare
         
@@ -358,6 +359,7 @@ class Client:
                 passive_jump, \
                 self.server_time_his[-1], \
                 instruction, \
+                fair_bw, \
                 exReward
         
     def update_data(self):

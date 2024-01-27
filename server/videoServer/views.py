@@ -63,8 +63,9 @@ async def download_video(request, video_filename):
         response['Prepare-Time'] = prepare
         response['Suggestion'] = suggestion
         if algo == "MARL":
-            instruction, reward = server.coordinate_agent(client_idx)
+            instruction, fair_bw, reward = server.coordinate_agent(client_idx)
             response['Instruction'] = instruction
+            response['Fairbw'] = fair_bw
             response['Reward'] = reward
         
         if request_gop + 1 != suggestion:

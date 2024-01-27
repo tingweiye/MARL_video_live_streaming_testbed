@@ -28,7 +28,7 @@ FREEZE_PENALTY = 25
 LATENCY_PENALTY = 0.3
 JUMP_PENALTY = 2
 SMOOTH_PENALTY = 4
-INSTRUCTION_REWARD = 5
+INSTRUCTION_REWARD = 4
 DEFAULT_QUALITY = Config.INITIAL_RATE  # default video quality without agent
 RANDOM_SEED = 42
 RAND_RANGE = 1000
@@ -79,20 +79,19 @@ class marl_solver:
         
         return self.state
         
-    def getReward(self, rate, last_rate, freeze, latency, jump, fair_coef=FAIRNESS_COEF, last_instruction=0):
+    def getReward(self, rate, last_rate, freeze, latency, jump, fair_coef, last_instruction, fair_bw):
         # -- log scale reward --
         log_rate = np.log(rate)
         log_last_rate = np.log(last_rate)
-        log_diff = log_rate - log_last_rate
+        log_fair_bw = np.log(fair_bw)
         
         reward =  QUALTITY_COEF  * log_rate \
                 - FREEZE_PENALTY * freeze \
                 - LATENCY_PENALTY* latency \
                 - JUMP_PENALTY   * jump \
-                - SMOOTH_PENALTY * np.abs(log_diff) \
-                + INSTRUCTION_REWARD * last_instruction * log_diff
-        
-        reward = fair_coef * reward + (1 - fair_coef) * QUALTITY_COEF * log_rate
+                - SMOOTH_PENALTY * np.abs(log_rate - log_last_rate) \
+                
+        reward = fair_coef * reward + (1 - fair_coef) * (QUALTITY_COEF * log_rate + INSTRUCTION_REWARD * last_instruction * (log_rate - log_fair_bw))
         
         return reward
                         
@@ -164,12 +163,12 @@ class marl_solver:
                         actions.append(torch.tensor([action]))
                         states.append(self.state.unsqueeze(0))
 
-                        latency, idle, buffer_size, freeze, download_time, bw, jump, server_time, instruction, fair_coef = self.client.download(rate, "PENSIEVE")
+                        latency, idle, buffer_size, freeze, download_time, bw, jump, server_time, instruction, fair_bw, fair_coef = self.client.download(rate, "PENSIEVE")
                         
                         time_stamp = server_time
                         # print(fair_coef)
                         # get reward
-                        reward = self.getReward(rate, last_rate, freeze, latency, jump, fair_coef, last_instruction)
+                        reward = self.getReward(rate, last_rate, freeze, latency, jump, fair_coef, last_instruction, fair_bw)
                         # print(reward)
                                 
                         # reward_max = 2.67
