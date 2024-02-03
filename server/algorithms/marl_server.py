@@ -3,6 +3,7 @@ import numpy as np
 from algorithms.client_info import client_info
 sys.path.append("..")
 from utils.config import Config
+from utils.utils import zfun
 
 class marl_server:
     
@@ -32,6 +33,7 @@ class marl_server:
         fair_bw =  (client_weight / self.sum_weights) * esTotalBW
         faircoe = max(client_bw - fair_bw, 0) / esTotalBW
         
+        instruction = zfun(client_bw - fair_bw, 0.5, 5)
         if abs(client_bw - fair_bw) < 0.5:
             instruction = 0
         elif client_bw - fair_bw >= 0.5:

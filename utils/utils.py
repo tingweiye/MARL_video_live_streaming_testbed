@@ -55,3 +55,14 @@ def delete_files_in_folder(folder_path):
         except Exception as e:
             print(f"Error deleting {file_path}: {e}")
             
+def z(x, threshold):
+    if abs(x) < threshold:
+        return 0
+    elif x >= threshold:
+        return x - threshold
+    else:
+        return x + threshold
+            
+def zfun(x, threshold0, threshold1):
+    assert threshold1 > 0
+    return min(threshold1, max(-threshold1, z(x, threshold0)))
