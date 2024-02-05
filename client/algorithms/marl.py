@@ -91,7 +91,7 @@ class marl_solver:
                 - JUMP_PENALTY   * jump \
                 - SMOOTH_PENALTY * np.abs(log_rate - log_last_rate) \
                 
-        reward = fair_coef * reward + (1 - fair_coef) * (QUALTITY_COEF * log_rate + INSTRUCTION_REWARD * last_instruction * (log_rate - log_fair_bw))
+        reward = fair_coef * reward + (1 - fair_coef) * (QUALTITY_COEF * log_rate + max(INSTRUCTION_REWARD * last_instruction * (log_rate - log_fair_bw), 0))
         
         return reward
                         
