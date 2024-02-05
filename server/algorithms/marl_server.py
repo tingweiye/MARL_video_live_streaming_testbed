@@ -37,9 +37,9 @@ class marl_server:
         if abs(client_bw - fair_bw) < 0.5:
             instruction = 0
         elif client_bw - fair_bw >= 0.5:
-            instruction = client_bw - fair_bw - 0.5
+            instruction = -(client_bw - fair_bw - 0.5)
         else:
-            instruction = client_bw - fair_bw + 0.5
+            instruction = -(client_bw - fair_bw + 0.5)
             
         exCoef = 1 - faircoe
         # print(instruction, client_bw, fair_bw, esTotalBW)
