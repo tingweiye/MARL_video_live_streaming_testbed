@@ -194,7 +194,9 @@ class marl_solver:
                                     str(latency) + '\t' +
                                     str(jump) + '\t' +
                                     str(reward) + '\t' + 
-                                    str(instruction) + '\n')
+                                    str(instruction) + '\t' +
+                                    str(fair_bw) + '\t' +
+                                    str(fair_coef) + '\n')
                         log_file.flush()
 
                     # one last step
