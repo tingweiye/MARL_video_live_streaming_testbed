@@ -59,9 +59,9 @@ def z(x, threshold):
     if abs(x) < threshold:
         return 0
     elif x >= threshold:
-        return x - threshold
+        return -(x - threshold)
     else:
-        return x + threshold
+        return -(x + threshold)
             
 def zfun(x, threshold0, threshold1):
     assert threshold1 > 0

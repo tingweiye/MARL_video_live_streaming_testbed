@@ -27,7 +27,7 @@ QUALTITY_COEF = 3
 FREEZE_PENALTY = 30
 LATENCY_PENALTY = 0.5
 JUMP_PENALTY = 2
-SMOOTH_PENALTY = 6
+SMOOTH_PENALTY = 5
 INSTRUCTION_REWARD = 6
 DEFAULT_QUALITY = Config.INITIAL_RATE  # default video quality without agent
 RANDOM_SEED = 42
@@ -45,7 +45,7 @@ CRITIC_MODEL= './results/critic.pt'
 ACTOR_MODEL = './results/actor.pt'
 CRITIC_MODEL = None
 
-TOTALEPOCH=30000
+TOTALEPOCH=30
 
 
 USE_CUDA = torch.cuda.is_available()
@@ -79,19 +79,27 @@ class marl_solver:
         
         return self.state
         
-    def getReward(self, rate, last_rate, freeze, latency, jump, fair_coef, last_instruction, fair_bw):
+    def getReward(self, rate, last_rate, freeze, latency, jump, fair_coef, last_instruction, fair_bw, reward_file):
         # -- log scale reward --
         log_rate = np.log(rate)
         log_last_rate = np.log(last_rate)
         log_fair_bw = np.log(fair_bw)
         
-        reward =  QUALTITY_COEF  * log_rate \
+        reward_self =  QUALTITY_COEF  * log_rate \
                 - FREEZE_PENALTY * freeze \
                 - LATENCY_PENALTY* latency \
                 - JUMP_PENALTY   * jump \
                 - SMOOTH_PENALTY * np.abs(log_rate - log_last_rate) \
                 
-        reward = fair_coef * reward + (1 - fair_coef) * (QUALTITY_COEF * log_rate + min(0, INSTRUCTION_REWARD * last_instruction * (log_rate - log_fair_bw)))
+        reward = fair_coef * reward_self + (1 - fair_coef) * (QUALTITY_COEF * log_rate + min(0, INSTRUCTION_REWARD * last_instruction * (log_rate - log_fair_bw)))
+        
+
+        reward_file.write(str(reward_self) + '\t' +
+                    str(fair_coef) + '\t' +
+                    str(min(0, INSTRUCTION_REWARD * last_instruction * (log_rate - log_fair_bw))) + '\t' +
+                    str(reward - fair_coef * reward_self) + '\n'
+                    )
+        reward_file.flush()
         
         return reward
                         
@@ -101,7 +109,7 @@ class marl_solver:
                         filemode='w',
                         level=logging.INFO)
     
-        with open(MARL_LOG_FILE + '_record', 'w') as log_file, open(MARL_LOG_FILE + '_test', 'w') as test_log_file:
+        with open(MARL_LOG_FILE + '_record', 'w') as log_file, open(MARL_LOG_FILE + '_reward', 'w') as reward_file:
 
             model_actor = ac.MActor(A_DIM).type(dtype)
             model_critic = ac.MCritic(A_DIM).type(dtype)
@@ -127,8 +135,8 @@ class marl_solver:
             time_stamp = 0
 
             exploration_size = 8
-            episode_steps = 16 ############ testing!!!!!!
-            update_num = 1
+            episode_steps = 32 ############ testing!!!!!!
+            update_num = 30
             batch_size = 32
             gamma = 0.99
             gae_param = 0.95
@@ -168,7 +176,7 @@ class marl_solver:
                         time_stamp = server_time
                         # print(fair_coef)
                         # get reward
-                        reward = self.getReward(rate, last_rate, freeze, latency, jump, fair_coef, last_instruction, fair_bw)
+                        reward = self.getReward(rate, last_rate, freeze, latency, jump, fair_coef, last_instruction, fair_bw, reward_file)
                         # print(reward)
                                 
                         # reward_max = 2.67

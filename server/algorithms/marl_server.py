@@ -31,15 +31,15 @@ class marl_server:
         client_bw = self.client_list[idx].bw
         client_weight = self.client_list[idx].weight
         fair_bw =  (client_weight / self.sum_weights) * esTotalBW
-        faircoe = max(client_bw - fair_bw, 0) / esTotalBW
+        faircoe = abs(client_bw - fair_bw) / esTotalBW
         
-        instruction = zfun(client_bw - fair_bw, 0.5, 5)
-        if abs(client_bw - fair_bw) < 0.5:
-            instruction = 0
-        elif client_bw - fair_bw >= 0.5:
-            instruction = -(client_bw - fair_bw - 0.5)
-        else:
-            instruction = -(client_bw - fair_bw + 0.5)
+        instruction = zfun(client_bw - fair_bw, 1, 6)
+        # if abs(client_bw - fair_bw) < 0.5:
+        #     instruction = 0
+        # elif client_bw - fair_bw >= 0.5:
+        #     instruction = -(client_bw - fair_bw - 0.5)
+        # else:
+        #     instruction = -(client_bw - fair_bw + 0.5)
             
         exCoef = 1 - faircoe
         # print(instruction, client_bw, fair_bw, esTotalBW)
