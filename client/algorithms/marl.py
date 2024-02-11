@@ -45,7 +45,7 @@ CRITIC_MODEL= './results/critic.pt'
 ACTOR_MODEL = './results/actor.pt'
 CRITIC_MODEL = None
 
-TOTALEPOCH=30
+TOTALEPOCH=50
 
 
 USE_CUDA = torch.cuda.is_available()
@@ -135,8 +135,8 @@ class marl_solver:
             time_stamp = 0
 
             exploration_size = 8
-            episode_steps = 32 ############ testing!!!!!!
-            update_num = 30
+            episode_steps = 50 ############ testing!!!!!!
+            update_num = 32
             batch_size = 32
             gamma = 0.99
             gae_param = 0.95

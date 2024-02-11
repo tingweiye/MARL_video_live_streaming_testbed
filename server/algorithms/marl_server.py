@@ -20,6 +20,7 @@ class marl_server:
         print(self.sum_weights)
     
     def remove_client(self, idx):
+        self.sum_weights -= self.client_list[idx].weight
         self.client_list.pop(idx)
         self.num_agent -= 1
         
