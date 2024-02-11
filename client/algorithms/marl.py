@@ -86,7 +86,7 @@ class marl_solver:
         log_fair_bw = np.log(fair_bw)
         
         reward_self =  QUALTITY_COEF  * log_rate \
-                - max(-5, FREEZE_PENALTY * freeze) \
+                - max(5, FREEZE_PENALTY * freeze) \
                 - LATENCY_PENALTY* latency \
                 - JUMP_PENALTY   * jump \
                 - SMOOTH_PENALTY * np.abs(log_rate - log_last_rate) \
