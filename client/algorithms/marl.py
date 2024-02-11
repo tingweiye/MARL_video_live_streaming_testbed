@@ -23,12 +23,12 @@ HD_REWARD = [1, 2, 3, 12, 15, 20]
 BUFFER_NORM_FACTOR = Config.CLIENT_MAX_BUFFER_LEN + 1
 CHUNK_TIL_VIDEO_END_CAP = 48.0
 M_IN_K = 1000.0
-QUALTITY_COEF = 3
+QUALTITY_COEF = 5
 FREEZE_PENALTY = 30
-LATENCY_PENALTY = 0.5
-JUMP_PENALTY = 2
-SMOOTH_PENALTY = 5
-INSTRUCTION_REWARD = 6
+LATENCY_PENALTY = 1
+JUMP_PENALTY = 3
+SMOOTH_PENALTY = 8
+INSTRUCTION_REWARD = 10
 DEFAULT_QUALITY = Config.INITIAL_RATE  # default video quality without agent
 RANDOM_SEED = 42
 RAND_RANGE = 1000
@@ -86,7 +86,7 @@ class marl_solver:
         log_fair_bw = np.log(fair_bw)
         
         reward_self =  QUALTITY_COEF  * log_rate \
-                - FREEZE_PENALTY * freeze \
+                - max(-5, FREEZE_PENALTY * freeze) \
                 - LATENCY_PENALTY* latency \
                 - JUMP_PENALTY   * jump \
                 - SMOOTH_PENALTY * np.abs(log_rate - log_last_rate) \
