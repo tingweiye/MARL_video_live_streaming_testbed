@@ -27,7 +27,7 @@ QUALTITY_COEF = 5
 FREEZE_PENALTY = 30
 LATENCY_PENALTY = 1
 JUMP_PENALTY = 3
-SMOOTH_PENALTY = 8
+SMOOTH_PENALTY = 10
 INSTRUCTION_REWARD = 10
 DEFAULT_QUALITY = Config.INITIAL_RATE  # default video quality without agent
 RANDOM_SEED = 42
@@ -135,7 +135,7 @@ class marl_solver:
             time_stamp = 0
 
             exploration_size = 8
-            episode_steps = 50 ############ testing!!!!!!
+            episode_steps = 30 ############ testing!!!!!!
             update_num = 32
             batch_size = 32
             gamma = 0.99
