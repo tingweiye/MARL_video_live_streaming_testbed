@@ -16,19 +16,19 @@ ACTOR_LR_RATE = 0.0001
 CRITIC_LR_RATE = 0.001
 NUM_AGENTS = 1
 TRAIN_SEQ_LEN = 100  # take as a train batch
-UPDATE_INTERVAL = 100
+UPDATE_INTERVAL = 20
 MODEL_SAVE_INTERVAL = 100
 VIDEO_BIT_RATE = Config.BITRATE  # Kbps
 HD_REWARD = [1, 2, 3, 12, 15, 20]
 BUFFER_NORM_FACTOR = Config.CLIENT_MAX_BUFFER_LEN + 1
 CHUNK_TIL_VIDEO_END_CAP = 48.0
 M_IN_K = 1000.0
-QUALTITY_COEF = 5
+QUALTITY_COEF = 3
 FREEZE_PENALTY = 30
 LATENCY_PENALTY = 1
 JUMP_PENALTY = 3
-SMOOTH_PENALTY = 10
-INSTRUCTION_REWARD = 10
+SMOOTH_PENALTY = 8
+INSTRUCTION_REWARD = 8
 DEFAULT_QUALITY = Config.INITIAL_RATE  # default video quality without agent
 RANDOM_SEED = 42
 RAND_RANGE = 1000
@@ -45,7 +45,7 @@ CRITIC_MODEL= './results/critic.pt'
 ACTOR_MODEL = './results/actor.pt'
 CRITIC_MODEL = None
 
-TOTALEPOCH=50
+TOTALEPOCH=100
 
 
 USE_CUDA = torch.cuda.is_available()
@@ -135,8 +135,8 @@ class marl_solver:
             time_stamp = 0
 
             exploration_size = 8
-            episode_steps = 30 ############ testing!!!!!!
-            update_num = 32
+            episode_steps = 32 ############ testing!!!!!!
+            update_num = 25
             batch_size = 32
             gamma = 0.99
             gae_param = 0.95

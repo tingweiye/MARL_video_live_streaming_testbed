@@ -179,6 +179,7 @@ class MActor(torch.nn.Module):
         # download_time_batch = self.bn(download_time_batch)
 
         x_1 = F.relu(self.actor_conv1(rates_batch))
+        
         x_2 = F.relu(self.actor_conv2(bandwitdh_batch))
         # x_3 = F.relu(self.actor_conv3(download_time_batch))
         x_4 = F.relu(self.actor_fc_1(inputs[:, 3:4, -1]))
