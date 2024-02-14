@@ -27,7 +27,7 @@ QUALTITY_COEF = 3
 FREEZE_PENALTY = 30
 LATENCY_PENALTY = 1
 JUMP_PENALTY = 3
-SMOOTH_PENALTY = 8
+SMOOTH_PENALTY = 10
 INSTRUCTION_REWARD = 8
 DEFAULT_QUALITY = Config.INITIAL_RATE  # default video quality without agent
 RANDOM_SEED = 42
@@ -101,7 +101,7 @@ class marl_solver:
                     )
         reward_file.flush()
         
-        return reward
+        return reward + 5
                         
     
     def solve(self, train=True):
