@@ -92,7 +92,6 @@ class marl_solver:
                 - SMOOTH_PENALTY * np.abs(log_rate - log_last_rate) \
                 
         reward = fair_coef * reward_self + (1 - fair_coef) * (QUALTITY_COEF * log_rate + min(0, INSTRUCTION_REWARD * last_instruction * (log_rate - log_fair_bw)))
-        
 
         reward_file.write(str(reward_self) + '\t' +
                     str(fair_coef) + '\t' +
@@ -101,7 +100,7 @@ class marl_solver:
                     )
         reward_file.flush()
         
-        return reward + 5
+        return reward + 10
                         
     
     def solve(self, train=True):
