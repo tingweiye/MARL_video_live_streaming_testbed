@@ -28,9 +28,10 @@ class marl_server:
         self.client_list[idx].update(rate, bw, buffer, latency)
         
     def orchestrate(self, idx):
-        esTotalBW = np.array([x.get_smooth_bw() for _, x in self.client_list.items()]).sum()
-        print(np.array([x.get_smooth_bw() for _, x in self.client_list.items()]))
-        client_bw = self.client_list[idx].bw
+        a = np.array([x.get_smooth_bw() for _, x in self.client_list.items()])
+        esTotalBW = a.sum()
+        print(a)
+        client_bw = self.client_list[idx].get_smooth_bw()
         client_weight = self.client_list[idx].weight
         fair_bw =  (client_weight / self.sum_weights) * esTotalBW
         faircoe = abs(client_bw - fair_bw) / esTotalBW
