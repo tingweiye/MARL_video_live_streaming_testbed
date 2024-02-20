@@ -170,7 +170,7 @@ class marl_solver:
                         actions.append(torch.tensor([action]))
                         states.append(self.state.unsqueeze(0))
 
-                        latency, idle, buffer_size, freeze, download_time, bw, jump, server_time, instruction, fair_bw, fair_coef = self.client.download(rate, "PENSIEVE")
+                        latency, idle, buffer_size, freeze, download_time, bw, jump, server_time, instruction, fair_bw, fair_coef = self.client.download(rate)
                         
                         time_stamp = server_time
                         # print(fair_coef)

@@ -35,6 +35,8 @@ class client_info:
             self.latency_his.pop(0)
             
     def get_smooth_bw(self):
+        if len(self.rate_his) == 0:
+            return self.moving_bw
         if len(self.rate_his) < Config.SERVER_ALGO_BUFFER_LEN:
             return self.moving_bw / len(self.rate_his)
         else:
