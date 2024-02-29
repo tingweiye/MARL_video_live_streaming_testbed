@@ -46,7 +46,7 @@ async def download_video(request, video_filename):
     # t1 = time.time()
     server_time = server.get_server_time()
     server.update_client(client_idx, request_rate, estimated_bw, client_buffer, client_latency, server_time)
-    print(server.check_pred(server_time))
+    # print(server.check_pred(server_time))
     suggestion, video_filename, prepare = server.process_request(client_idx, request_gop, request_rate)
     
     video_path = os.path.join(os.getcwd(), "data/"+video_filename)
