@@ -85,11 +85,14 @@ class Server:
         # print(f"In processing: wait: {prepare}, check: {t1 - end}, suggest: {t2 - t1}")
         return suggestion, video_filename, prepare
     
-    def update_client(self, idx, rate, bw, buffer, latency):
-        self.algo.update_info(idx, rate, bw, buffer, latency)
+    def update_client(self, idx, rate, bw, buffer, latency, startTime):
+        self.algo.update_info(idx, rate, bw, buffer, latency, startTime)
         
     def coordinate_agent(self, idx):
         return self.algo.orchestrate(idx)
+    
+    def check_pred(self, startTime):
+        return self.algo.bw_prediction(startTime)
 
 # A pesudo encoder
 class LiveEncoder(threading.Thread):

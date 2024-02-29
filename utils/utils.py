@@ -1,6 +1,8 @@
 from datetime import datetime, timedelta
 import pandas as pd
+import numpy as np
 from utils.config import Config
+from collections import deque
 import time
 import os
 
@@ -64,5 +66,31 @@ def z(x, threshold):
         return -(x + threshold)
             
 def zfun(x, threshold0, threshold1):
-    assert threshold1 > 0
+    assert threshold1 > 0 and threshold0 >= 0
     return min(threshold1, max(-threshold1, z(x, threshold0)))
+
+def zclip(x, threshold0, threshold1):
+    assert threshold1 > 0 and threshold0 >= 0
+    return -min(threshold1, max(-threshold1, z(x, threshold0)))
+
+class MovingQueue:
+    def __init__(self, N):
+        self.capacity = N
+        self.queue = deque(maxlen=N)
+        
+    def __len__(self):
+        return len(self.queue)
+        
+    def add(self, item):
+        self.queue.append(item)
+        
+    def get(self, idx):
+        return self.queue[idx]
+    
+    def sum(self):
+        return sum(self.queue)
+    
+    def avg(self):
+        return np.mean(self.queue)
+    
+    

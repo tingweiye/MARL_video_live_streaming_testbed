@@ -24,8 +24,16 @@ class marl_server:
         self.client_list.pop(idx)
         self.num_agent -= 1
         
-    def update_info(self, idx, rate, bw, buffer, latency):
-        self.client_list[idx].update(rate, bw, buffer, latency)
+    def update_info(self, idx, rate, bw, buffer, latency, startTime):
+        self.client_list[idx].update(rate, bw, buffer, latency, startTime)
+        
+    def bw_prediction(self, startTime):
+        low_all, high_all = 0, 0
+        for _, c in self.client_list.items():
+            low, high = c.get_traffic_low_high(startTime)
+            low_all += low
+            high_all += high
+        return (low_all + high_all) / Config.SERVER_ESTIMATION_LEN / 2
         
     def orchestrate(self, idx):
         a = np.array([x.get_smooth_bw() for _, x in self.client_list.items()])
@@ -36,7 +44,7 @@ class marl_server:
         fair_bw =  (client_weight / self.sum_weights) * esTotalBW
         faircoe = abs(client_bw - fair_bw) / esTotalBW
         
-        instruction = zfun(client_bw - fair_bw, 1, 6)
+        instruction = zfun(client_bw - fair_bw, 0, 6)
         # if abs(client_bw - fair_bw) < 0.5:
         #     instruction = 0
         # elif client_bw - fair_bw >= 0.5:
