@@ -19,7 +19,7 @@ from utils.config import Config
 
 # Server initialization
 # server = apps.get_app_config('videoServer').server
-server = Server("MARL")
+server = Server("HMARL")
 shared_data_lock = threading.Lock()
 shared_register_lock = threading.Lock()
 
@@ -40,12 +40,29 @@ async def download_video(request, video_filename):
     request_rate = float(request.META.get('HTTP_RATE'))
     estimated_bw = float(request.META.get('HTTP_BW'))
     client_buffer = float(request.META.get('HTTP_BUFFER'))
+    client_freeze = float(request.META.get('HTTP_FREEZE'))
     client_latency = float(request.META.get('HTTP_LATENCY'))
+    client_jump = float(request.META.get('HTTP_JUMP'))
+    
     algo = request.META.get('HTTP_ALGO')
     
     # t1 = time.time()
     server_time = server.get_server_time()
-    server.update_client(client_idx, request_rate, estimated_bw, client_buffer, client_latency, server_time)
+    info = {"rate": request_rate,
+            "bw": estimated_bw,
+            "buffer": client_buffer,
+            "freeze": client_freeze,
+            "latency": client_latency,
+            "jump": client_jump,
+            "startTime":server_time}
+    
+    # update information of the client
+    server.update_client(client_idx, info)
+    
+    # HMARL rate selection
+    if algo == "HMARL":
+        request_rate, intrinsic_reward, extrinsic_reward = server.hmarl_solve(client_idx)
+        
     # print(server.check_pred(server_time))
     suggestion, video_filename, prepare = server.process_request(client_idx, request_gop, request_rate)
     
@@ -64,11 +81,15 @@ async def download_video(request, video_filename):
         response['Server-Time'] = server_time
         response['Prepare-Time'] = prepare
         response['Suggestion'] = suggestion
+        response['Rate'] = request_rate
         if algo == "MARL":
-            instruction, fair_bw, reward = server.coordinate_agent(client_idx)
+            instruction, fair_bw, reward = server.marl_solve(client_idx)
             response['Instruction'] = instruction
             response['Fairbw'] = fair_bw
             response['Reward'] = reward
+        elif algo == "HMARL":
+            response['Reward'] = intrinsic_reward
+            response['ExReward'] = extrinsic_reward
         
         if request_gop + 1 != suggestion:
             Logger.log(f"Client {client_idx} latency too high, suggested downloading {suggestion - 1}")

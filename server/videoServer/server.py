@@ -1,5 +1,6 @@
 from algorithms.marl_server import marl_server
 from algorithms.pesudo_server import pesudo_server
+from algorithms.hmarl_server import hmarl_server
 import time
 import os
 import sys
@@ -18,9 +19,11 @@ class Server:
         self.max_client_num = 100     
         if algo == "MARL":
             self.algo = marl_server()
+        elif algo == "HMARL":
+            self.algo = hmarl_server()
         else:
             self.algo = pesudo_server()
-            
+        
         print(f"Using algorithm {algo}")
         
         self.next_idx = 0
@@ -85,14 +88,19 @@ class Server:
         # print(f"In processing: wait: {prepare}, check: {t1 - end}, suggest: {t2 - t1}")
         return suggestion, video_filename, prepare
     
-    def update_client(self, idx, rate, bw, buffer, latency, startTime):
-        self.algo.update_info(idx, rate, bw, buffer, latency, startTime)
+    def update_client(self, idx, info):
+        self.algo.update_info(idx, info)
         
-    def coordinate_agent(self, idx):
+    def marl_solve(self, idx):
+        self.algo.solve(idx)
         return self.algo.orchestrate(idx)
+    
+    def hmarl_solve(self, idx):
+        return self.algo.solve(idx)
     
     def check_pred(self, startTime):
         return self.algo.bw_prediction(startTime)
+    
 
 # A pesudo encoder
 class LiveEncoder(threading.Thread):

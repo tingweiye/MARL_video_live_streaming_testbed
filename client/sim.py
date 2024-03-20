@@ -4,7 +4,8 @@ from client import Client
 import sys
 from algorithms import (stallion,
                         pensieve,
-                        marl)
+                        marl,
+                        pesudo)
 import numpy as np
 import torch
 from torch.autograd import Variable
@@ -65,6 +66,10 @@ class Simulator:
         self.solver = marl.marl_solver(self.client, args.weight)
         self.solver.solve()
         
+    def hmarlRun(self):
+        self.solver = pesudo.pesudo_solver(self.client, args.weight)
+        self.solver.solve()
+        
     def run(self):
         if self.algo == "STALLION":
             self.stallionRun()
@@ -72,6 +77,8 @@ class Simulator:
             self.pensieveRun()
         elif self.algo == "MARL":
             self.marlRun()
+        elif self.algo == "HMARL":
+            self.hmarlRun()
         else:
             print("No such algorithm, please select a valid algorithm.")
             exit()

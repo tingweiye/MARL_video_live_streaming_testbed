@@ -3,6 +3,7 @@ import numpy as np
 import random
 import torch
 
+
 class ReplayMemory(object):
     def __init__(self, capacity):
         self.capacity = capacity
@@ -28,3 +29,4 @@ class ReplayMemory(object):
 
     def return_size(self):
         return len(self.memory)
+    

@@ -248,14 +248,15 @@ class Client:
         # Define the download URL and filename
         filename = f'{self.next_gop}_{rate:.1f}.mp4'
         download_url = os.path.join(self.base_get_url, filename)  # Replace with the actual URL path
-        download_filename = 'd_' + filename  # Replace with the desired local filename
         
         headers = {'idx': str(self.client_idx),
                    'gop': str(self.next_gop),
                    'rate': str(rate),
                    'bw': str(self.bw_his[-1]),
                    'buffer': str(self.buffer_his[-1]),
+                   'freeze': str(self.freeze_his[-1]),
                    'latency': str(self.latency_his[-1]),
+                   'jump': str(self.jump_his[-1]),
                    'algo': self.algo}
         # Create an HTTP connection to the server
         # connection = http.client.HTTPConnection(self.server_host, self.server_port)
@@ -266,29 +267,36 @@ class Client:
         try:
             response = self.connection.get(self.base_url + download_url, headers=headers)
             response.raise_for_status()
+            download_rate, instruction, exReward, fair_bw = rate, -1, -1, -1
+            intrinsic_reward, extrinsic_reward = -1, -1
             
             # Read and save the downloaded content to a local file
             # Get server time and calculate
             server_time = float(response.headers.get('Server-Time'))
             suggestion = int(response.headers.get('Suggestion'))
             prepare = float(response.headers.get('Prepare-Time'))
+            download_rate = float(response.headers.get('Rate'))
+            
             if self.algo == "MARL":
                 instruction = float(response.headers.get('Instruction'))
                 fair_bw = float(response.headers.get('Fairbw'))
                 exReward = float(response.headers.get('Reward'))
-            else:
-                instruction, exReward = -1, -1
+            elif self.algo == "HMARL":
+                intrinsic_reward = float(response.headers.get('Reward'))
+                extrinsic_reward = float(response.headers.get('ExReward'))
 
             passive_jump = suggestion - self.next_gop - 1
             self.last_gop = suggestion - 1
             self.next_gop = suggestion
             
+            filename = f'{self.next_gop}_{download_rate:.1f}.mp4'
+            download_filename = 'd_' + filename  # Replace with the desired local filename
             with open('data/' + download_filename, 'wb') as local_file:
                 local_file.write(response.content)
             
             # print(f"Request and response: {t2 - t1}, write: {t4 - t3}, logic: {t3 - t2}")
             # self.connection.close()
-            return suggestion, prepare, passive_jump, server_time, instruction, fair_bw, exReward
+            return suggestion, prepare, passive_jump, server_time, instruction, fair_bw, exReward, download_rate, intrinsic_reward, extrinsic_reward
         except:
             self.connection.close()
             # print(f"Failed to download. Status code: {response.status}")
@@ -302,7 +310,8 @@ class Client:
         # get the next gop and calculate the download time
         download_start = time.time()
         # time.sleep(6) # simulate congestion
-        suggestion, prepare, passive_jump, server_time, instruction, fair_bw, exReward = self.__request_video_seg(rate)
+        suggestion, prepare, passive_jump, server_time, instruction, fair_bw, exReward, download_rate, intrinsic_reward, extrinsic_reward = self.__request_video_seg(rate)
+        # print(download_rate)
         download_end = time.time()
         self.download_time = download_end - download_start - prepare
         
@@ -338,15 +347,15 @@ class Client:
         # self.latency = server_time + prepare - (time.time() - self.base_time - self.accumulative_latency) - self.rtt
         # print(f"Latency: {self.latency:.3f}, server time: {server_time:.3f}, current: {time.time() - self.base_time:.3f}")
         ######### get bandwidth #########
-        self.bw = rate / self.download_time
+        self.bw = download_rate / self.download_time
         
         ######### get buffer length #########
         # push to buffer
-        self.buffer.put(download_seg_info(self.last_gop, rate))
+        self.buffer.put(download_seg_info(self.last_gop, download_rate))
         # buffer_len = self.get_buffer_size()
-        Logger.log(f"Client {self.client_idx} downloaded segment {self.last_gop} at rate {rate}")
+        Logger.log(f"Client {self.client_idx} downloaded segment {self.last_gop} at rate {download_rate}")
         # update data
-        self.rate_his.append(rate)
+        self.rate_his.append(download_rate)
         self.server_time_his.append(server_time)
         self.update_data()
         
@@ -360,7 +369,10 @@ class Client:
                 self.server_time_his[-1], \
                 instruction, \
                 fair_bw, \
-                exReward
+                exReward, \
+                download_rate, \
+                intrinsic_reward, \
+                extrinsic_reward
         
     def update_data(self):
         
