@@ -122,7 +122,7 @@ class hmarl_server(pesudo_server):
             # Push data to meta controller
             if client.hmarl_step > 0:
                 F = client.accumulative_extrinsic_reawad / client.episode_step
-                print(f"Reward: F: {F}")
+                print(f"Client{client.client_idx} gets Reward F: {F}")
                 self.agent.meta_replay_memory.push(client.last_meta_state, client.goal_idx, meta_state, F, False)
             client.last_meta_state = meta_state.copy()
             
