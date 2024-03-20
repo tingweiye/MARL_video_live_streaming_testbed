@@ -54,10 +54,10 @@ class hmarl_server(pesudo_server):
     
     def get_meta_state(self, client:client_info, steps_taken=1):
         meta_state = np.zeros(4)
-        mean_total_bw = 20
+        mean_total_bw = 21.5
         # calculate meta state members
-        mean_rate = np.mean(client.rate_his.get_last_mean(steps_taken))# / mean_total_bw
-        sum_others_rate = self.get_others_sum_mean_rate(client, steps_taken)# / mean_total_bw
+        mean_rate = np.mean(client.rate_his.get_last_mean(steps_taken)) / mean_total_bw
+        sum_others_rate = self.get_others_sum_mean_rate(client, steps_taken) / mean_total_bw
         last_goal = client.goal / MAX_RATE
         weight = client.weight / self.sum_weights
         
@@ -65,6 +65,7 @@ class hmarl_server(pesudo_server):
         meta_state[1] = sum_others_rate
         meta_state[2] = last_goal
         meta_state[3] = weight
+        print(meta_state)
         return meta_state
     
     def get_extrinsic_reward(self, client:client_info):
