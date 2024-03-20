@@ -127,7 +127,7 @@ class client_info:
     def get_qoe(self):
         log_rate = np.log(self.rate)
         log_last_rate = np.log(self.last_rate)
-        print(QUALTITY_COEF  * log_rate, FREEZE_PENALTY * self.freeze, LATENCY_PENALTY* self.latency, SMOOTH_PENALTY * np.abs(log_rate - log_last_rate))
+        # print(QUALTITY_COEF  * log_rate, FREEZE_PENALTY * self.freeze, LATENCY_PENALTY* self.latency, SMOOTH_PENALTY * np.abs(log_rate - log_last_rate))
         QoE =     QOE_QUALTITY_COEF  * log_rate \
                 - QOE_FREEZE_PENALTY * self.freeze \
                 - QOE_LATENCY_PENALTY* self.latency \

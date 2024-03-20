@@ -72,14 +72,14 @@ class hmarl_server(pesudo_server):
     
     def get_propotional_fairness(self):
         fairness = 0
-        li = []
+        # li = []
         for _, client in self.client_list.items():
             qoe = client.get_qoe()
             weight = client.weight
             fairness += weight * np.log(max(qoe, 1))
-            li.append(qoe)
-        print(li)
-        print(fairness)
+            # li.append(qoe)
+        # print(li)
+        # print(fairness)
         return fairness
     
     def get_maxmin_fairness(self):
