@@ -19,7 +19,7 @@ MAX_EP_LEN = 10
 TRAIN_START_META = 500
 TRAIN_START_LOCAL = 1000
 TRAIN_INTERVAL = 50
-TRAIN_TIMES = 40
+TRAIN_TIMES = 50
 # MAX_EP_LEN = 10
 # TRAIN_START_META = 1
 # TRAIN_START_LOCAL = 1
@@ -65,7 +65,7 @@ class hmarl_server(pesudo_server):
         meta_state[1] = sum_others_rate
         meta_state[2] = last_goal
         meta_state[3] = weight
-        print(meta_state)
+        # print(meta_state)
         return meta_state
     
     def get_extrinsic_reward(self, client:client_info):
