@@ -15,7 +15,7 @@ dtype = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTens
 VIDEO_BIT_RATE = Config.BITRATE  # Kbps
 MAX_RATE = float(np.max(VIDEO_BIT_RATE))
 
-MAX_EP_LEN = 10
+MAX_EP_LEN = 20
 TRAIN_START_META = 500
 TRAIN_START_LOCAL = 1000
 TRAIN_INTERVAL = 50
@@ -65,7 +65,6 @@ class hmarl_server(pesudo_server):
         meta_state[1] = sum_others_rate
         meta_state[2] = last_goal
         meta_state[3] = weight
-        # print(meta_state)
         return meta_state
     
     def get_extrinsic_reward(self, client:client_info):
@@ -106,7 +105,7 @@ class hmarl_server(pesudo_server):
     def solve(self, idx):
         client = self.client_list[idx]
         done = False
-        
+        # print(client.client_idx, client.controller_epsilon, client.meta_controller_epsilon)
         # Goal reached, max steps reached or client started
         if client.goal_reached() or client.episode_step == MAX_EP_LEN or client.hmarl_step == -1:  
             # Select goals
@@ -133,6 +132,12 @@ class hmarl_server(pesudo_server):
             self.update_meta_lock.acquire()
             meta_epsilon = client.meta_controller_epsilon
             client.goal, client.goal_idx = self.select_goal(meta_state, meta_epsilon)
+            if client.client_idx == 0:
+                client.goal = 5.0
+            elif client.client_idx == 1:
+                client.goal = 8.0
+            elif client.client_idx == 2:
+                client.goal = 4.0
             Logger.log(f"Client {client.client_idx} gets goal {client.goal}")
             if self.train and self.agent.meta_count >= TRAIN_START_META and self.agent.meta_count % TRAIN_INTERVAL == 0:
                 Logger.log("Training meta controller...")
@@ -150,7 +155,7 @@ class hmarl_server(pesudo_server):
         
         # Push data to local controller
         if client.hmarl_step > 0:
-            self.agent.ctrl_replay_memory.push(client.last_state, client.rate_idx, client.state, intrinsic_reward, done)
+            self.agent.ctrl_replay_memory.push(client.last_state, client.rate_idx, client.get_state_goal(), intrinsic_reward, done)
             
         # Train local controller
         if self.train and self.agent.local_count >= TRAIN_START_LOCAL and self.agent.local_count % TRAIN_INTERVAL == 0:
@@ -164,11 +169,12 @@ class hmarl_server(pesudo_server):
         
         # Select new rate
         state_goal = client.get_state_goal()
+        # print(state_goal.shape)
         epsilon = client.controller_epsilon
         client.rate, client.rate_idx = self.select_rate(state_goal, epsilon)
         Logger.log(f"Client {client.client_idx} gets rate {client.rate}") 
         
-        return client.rate, intrinsic_reward, extrinsic_reward
+        return client.rate, client.goal, intrinsic_reward, extrinsic_reward
         
     
     

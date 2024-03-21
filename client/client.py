@@ -282,6 +282,7 @@ class Client:
                 fair_bw = float(response.headers.get('Fairbw'))
                 exReward = float(response.headers.get('Reward'))
             elif self.algo == "HMARL":
+                goal = float(response.headers.get('Goal'))
                 intrinsic_reward = float(response.headers.get('Reward'))
                 extrinsic_reward = float(response.headers.get('ExReward'))
 
@@ -296,7 +297,19 @@ class Client:
             
             # print(f"Request and response: {t2 - t1}, write: {t4 - t3}, logic: {t3 - t2}")
             # self.connection.close()
-            return suggestion, prepare, passive_jump, server_time, instruction, fair_bw, exReward, download_rate, intrinsic_reward, extrinsic_reward
+            info = {"suggestion":suggestion,
+                    "prepare":prepare, 
+                    "passive_jump":passive_jump, 
+                    "server_time":server_time, 
+                    "instruction":instruction, 
+                    "fair_bw":fair_bw, 
+                    "exReward":exReward, 
+                    "download_rate":download_rate, 
+                    "goal":goal,
+                    "intrinsic_reward":intrinsic_reward, 
+                    "extrinsic_reward":extrinsic_reward}
+            # return suggestion, prepare, passive_jump, server_time, instruction, fair_bw, exReward, download_rate, intrinsic_reward, extrinsic_reward
+            return info
         except:
             self.connection.close()
             # print(f"Failed to download. Status code: {response.status}")
@@ -310,7 +323,18 @@ class Client:
         # get the next gop and calculate the download time
         download_start = time.time()
         # time.sleep(6) # simulate congestion
-        suggestion, prepare, passive_jump, server_time, instruction, fair_bw, exReward, download_rate, intrinsic_reward, extrinsic_reward = self.__request_video_seg(rate)
+        info = self.__request_video_seg(rate)
+        suggestion = info["suggestion"]
+        prepare = info["prepare"]
+        passive_jump = info["passive_jump"]
+        server_time = info["server_time"] 
+        instruction = info["instruction"]
+        fair_bw = info["fair_bw"]
+        exReward = info["exReward"]
+        download_rate = info["download_rate"]
+        goal = info["goal"]
+        intrinsic_reward = info["intrinsic_reward"]
+        extrinsic_reward = info["extrinsic_reward"]
         # print(download_rate)
         download_end = time.time()
         self.download_time = download_end - download_start - prepare
@@ -359,20 +383,39 @@ class Client:
         self.server_time_his.append(server_time)
         self.update_data()
         
-        return self.latency_his[-1], \
-                self.idle_his[-1], \
-                self.buffer_his[-1], \
-                self.freeze_his[-1], \
-                self.download_time_his[-1], \
-                self.bw_his[-1], \
-                passive_jump, \
-                self.server_time_his[-1], \
-                instruction, \
-                fair_bw, \
-                exReward, \
-                download_rate, \
-                intrinsic_reward, \
-                extrinsic_reward
+        return_info = {
+            "latency":self.latency_his[-1], 
+            "idle":self.idle_his[-1], 
+            "buffer_size":self.buffer_his[-1], 
+            "freeze":self.freeze_his[-1], 
+            "download_time":self.download_time_his[-1], 
+            "bw":self.bw_his[-1], 
+            "jump":passive_jump, 
+            "server_time":self.server_time_his[-1], 
+            "instruction":instruction, 
+            "fair_bw":fair_bw,
+            "exReward":exReward,
+            "goal":goal,
+            "download_rate":download_rate,
+            "intrinsic_reward":intrinsic_reward, 
+            "extrinsic_reward":extrinsic_reward
+        }
+        
+        # return self.latency_his[-1], \
+        #         self.idle_his[-1], \
+        #         self.buffer_his[-1], \
+        #         self.freeze_his[-1], \
+        #         self.download_time_his[-1], \
+        #         self.bw_his[-1], \
+        #         passive_jump, \
+        #         self.server_time_his[-1], \
+        #         instruction, \
+        #         fair_bw, \
+        #         exReward, \
+        #         download_rate, \
+        #         intrinsic_reward, \
+        #         extrinsic_reward
+        return return_info
         
     def update_data(self):
         
@@ -420,6 +463,7 @@ class Client:
                 
             self.download()
         self.exit()
+        
 
 
 if __name__ == "__main__":

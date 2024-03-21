@@ -11,10 +11,10 @@ VIDEO_BIT_RATE = Config.BITRATE  # Kbps
 MAX_RATE = float(np.max(VIDEO_BIT_RATE))
 INITIAL_RATE = VIDEO_BIT_RATE[int(len(VIDEO_BIT_RATE) // 2)]
 
-MAX_EPSILON_C = 0.9
-MAX_EPSILON_M = 0.5
+MAX_EPSILON_C = 0.8
+MAX_EPSILON_M = 0.8
 MIN_EPSILON = 0.01
-EPSILON_DECAY = 0.999
+EPSILON_DECAY = 0.995
 
 QUALTITY_COEF = 5
 FREEZE_PENALTY = 25
@@ -52,7 +52,7 @@ class client_info:
         self.controller_epsilon = MAX_EPSILON_C
         self.meta_controller_epsilon = MAX_EPSILON_M
         
-        self.state = np.zeros((S_INFO,S_LEN))
+        self.state = np.zeros((S_INFO-1,S_LEN))
         self.last_state = np.zeros((S_INFO,S_LEN))
         self.last_meta_state = np.zeros((1, S_META))
         
@@ -106,11 +106,11 @@ class client_info:
         self.jump_his.add(self.jump)
         self.startTime_his.add(self.startTime)
         
-        self.last_state = self.state.copy()
+        self.last_state = self.get_state_goal().copy()
         self.state = np.roll(self.state, -1, axis=1)
         self.state[0, -1] = self.rate / MAX_RATE
         self.state[1, -1] = self.get_smooth_bw()
-        self.state[2, -1] = self.buffer
+        self.state[2, -1] = self.buffer / Config.CLIENT_MAX_BUFFER_LEN
 
     def epsilon_decay(self):
         self.controller_epsilon *= EPSILON_DECAY
@@ -147,7 +147,7 @@ class client_info:
                 - SMOOTH_PENALTY * np.abs(log_rate - log_last_rate)
                 
         if self.rate == self.goal:
-            reward = reward + 20
+            reward = reward + 5
 
         # reward_file.write(str(reward_self) + '\t' +
         #             str(fair_coef) + '\t' +

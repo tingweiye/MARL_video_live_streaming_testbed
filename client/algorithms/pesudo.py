@@ -38,8 +38,21 @@ class pesudo_solver:
             for epoch in range(TOTALEPOCH):
                 
                 total_bw = 0
-                latency, idle, buffer_size, freeze, download_time, bw, jump, server_time, instruction, fair_bw, fair_coef, download_rate, intrinsic_reward, extrinsic_reward = self.client.download(0)
-                        
+                info = self.client.download(0)
+                latency = info["latency"]
+                idle = info["idle"]
+                buffer_size = info["buffer_size"]
+                freeze = info["freeze"]
+                download_time = info["download_time"]
+                bw = info["bw"]
+                jump = info["jump"]
+                server_time = info["server_time"]
+                instruction = info["instruction"]
+                download_rate = info["download_rate"]
+                goal = info["goal"]
+                intrinsic_reward = info["intrinsic_reward"]
+                extrinsic_reward = info["extrinsic_reward"]
+                
                 time_stamp = server_time
                 last_rate = rate
                 rate = download_rate
@@ -55,6 +68,7 @@ class pesudo_solver:
                             str(idle) + '\t' +
                             str(latency) + '\t' +
                             str(jump) + '\t' +
+                            str(goal) + '\t' +
                             str(intrinsic_reward) + '\t' + 
                             str(extrinsic_reward) + '\n')
                 log_file.flush()
