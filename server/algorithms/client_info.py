@@ -109,8 +109,8 @@ class client_info:
         self.last_state = self.get_state_goal().copy()
         self.state = np.roll(self.state, -1, axis=1)
         self.state[0, -1] = self.rate / MAX_RATE
-        self.state[1, -1] = self.get_smooth_bw()
-        self.state[2, -1] = self.buffer / Config.CLIENT_MAX_BUFFER_LEN
+        self.state[1, -1] = self.get_smooth_bw() / 10
+        self.state[2, -1] = (self.buffer-1) / Config.CLIENT_MAX_BUFFER_LEN
 
     def epsilon_decay(self):
         self.controller_epsilon *= EPSILON_DECAY
@@ -134,7 +134,7 @@ class client_info:
                 - QOE_SMOOTH_PENALTY * np.abs(log_rate - log_last_rate)
         return QoE
     
-    def get_intrinsic_reward(self, reward_file=""):
+    def get_intrinsic_reward(self, done, reward_file=""):
         # -- log scale reward --
         # print(self.rate, self.last_rate)
         log_rate = np.log(self.rate)
@@ -145,9 +145,12 @@ class client_info:
                 - LATENCY_PENALTY* self.latency \
                 - JUMP_PENALTY   * self.jump \
                 - SMOOTH_PENALTY * np.abs(log_rate - log_last_rate)
+        # print(QUALTITY_COEF*log_rate, FREEZE_PENALTY * max(0.5, self.freeze))
                 
-        if self.rate == self.goal:
-            reward = reward + 5
+        if self.goal_reached():
+            reward = reward + 10
+        elif done:
+            reward = reward - 50
 
         # reward_file.write(str(reward_self) + '\t' +
         #             str(fair_coef) + '\t' +

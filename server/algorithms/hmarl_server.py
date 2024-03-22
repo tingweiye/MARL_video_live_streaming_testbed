@@ -15,7 +15,7 @@ dtype = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTens
 VIDEO_BIT_RATE = Config.BITRATE  # Kbps
 MAX_RATE = float(np.max(VIDEO_BIT_RATE))
 
-MAX_EP_LEN = 20
+MAX_EP_LEN = 10
 TRAIN_START_META = 500
 TRAIN_START_LOCAL = 1000
 TRAIN_INTERVAL = 50
@@ -105,12 +105,16 @@ class hmarl_server(pesudo_server):
     def solve(self, idx):
         client = self.client_list[idx]
         done = False
+        end = False
         # print(client.client_idx, client.controller_epsilon, client.meta_controller_epsilon)
         # Goal reached, max steps reached or client started
         if client.goal_reached() or client.episode_step == MAX_EP_LEN or client.hmarl_step == -1:  
             # Select goals
             # Initialize steps
             done = True
+            if not client.goal_reached() and client.episode_step == MAX_EP_LEN:
+                print("hihi")
+                end = True
             if client.hmarl_step == -1:
                 done = False
                 client.hmarl_step = 0
@@ -132,12 +136,12 @@ class hmarl_server(pesudo_server):
             self.update_meta_lock.acquire()
             meta_epsilon = client.meta_controller_epsilon
             client.goal, client.goal_idx = self.select_goal(meta_state, meta_epsilon)
-            if client.client_idx == 0:
-                client.goal = 5.0
-            elif client.client_idx == 1:
-                client.goal = 8.0
-            elif client.client_idx == 2:
-                client.goal = 4.0
+            # if client.client_idx == 0:
+            #     client.goal = 5.0
+            # elif client.client_idx == 1:
+            #     client.goal = 8.0
+            # elif client.client_idx == 2:
+            #     client.goal = 4.0
             Logger.log(f"Client {client.client_idx} gets goal {client.goal}")
             if self.train and self.agent.meta_count >= TRAIN_START_META and self.agent.meta_count % TRAIN_INTERVAL == 0:
                 Logger.log("Training meta controller...")
@@ -148,7 +152,9 @@ class hmarl_server(pesudo_server):
             client.epsilon_decay()
             
         # Get extrinsic and intrinsic rewards
-        intrinsic_reward = client.get_intrinsic_reward()
+
+        intrinsic_reward = client.get_intrinsic_reward(end)
+        print(intrinsic_reward)
         client.last_rate = client.rate
         extrinsic_reward = self.get_extrinsic_reward(client)
         client.accumulative_extrinsic_reawad += extrinsic_reward

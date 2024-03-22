@@ -166,7 +166,7 @@ class hDQN():
                  num_goal=6,
                  num_action=6,
                  replay_memory_size=10000,
-                 batch_size=2,
+                 batch_size=64,
                  tau=0.01):
         ###############
         # BUILD MODEL #
