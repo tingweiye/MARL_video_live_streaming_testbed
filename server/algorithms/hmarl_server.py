@@ -154,7 +154,6 @@ class hmarl_server(pesudo_server):
         # Get extrinsic and intrinsic rewards
 
         intrinsic_reward = client.get_intrinsic_reward(end)
-        print(intrinsic_reward)
         client.last_rate = client.rate
         extrinsic_reward = self.get_extrinsic_reward(client)
         client.accumulative_extrinsic_reawad += extrinsic_reward
