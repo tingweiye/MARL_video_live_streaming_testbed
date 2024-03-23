@@ -97,9 +97,7 @@ class hmarl_server(pesudo_server):
     
     def select_rate(self, state_goal, epsilon):
         action = self.agent.select_action(torch.from_numpy(state_goal).unsqueeze(0).type(dtype), epsilon)
-        self.update_local_lock.acquire()
         self.agent.local_count += 1
-        self.update_local_lock.release()
         return VIDEO_BIT_RATE[action.item()], action
     
     def solve(self, idx):
@@ -113,7 +111,6 @@ class hmarl_server(pesudo_server):
             # Initialize steps
             done = True
             if not client.goal_reached() and client.episode_step == MAX_EP_LEN:
-                print("hihi")
                 end = True
             if client.hmarl_step == -1:
                 done = False
@@ -136,13 +133,13 @@ class hmarl_server(pesudo_server):
             self.update_meta_lock.acquire()
             meta_epsilon = client.meta_controller_epsilon
             client.goal, client.goal_idx = self.select_goal(meta_state, meta_epsilon)
-            # if client.client_idx == 0:
-            #     client.goal = 5.0
-            # elif client.client_idx == 1:
-            #     client.goal = 8.0
-            # elif client.client_idx == 2:
-            #     client.goal = 4.0
-            Logger.log(f"Client {client.client_idx} gets goal {client.goal}")
+            if client.client_idx == 0:
+                client.goal = 5.0
+            elif client.client_idx == 1:
+                client.goal = 8.0
+            elif client.client_idx == 2:
+                client.goal = 4.0
+            Logger.log(f"Client {client.client_idx} gets goal {client.goal} with epsilon {client.meta_controller_epsilon}")
             if self.train and self.agent.meta_count >= TRAIN_START_META and self.agent.meta_count % TRAIN_INTERVAL == 0:
                 Logger.log("Training meta controller...")
                 for t in range(TRAIN_TIMES):
@@ -152,32 +149,30 @@ class hmarl_server(pesudo_server):
             client.epsilon_decay()
             
         # Get extrinsic and intrinsic rewards
-
         intrinsic_reward = client.get_intrinsic_reward(end)
         client.last_rate = client.rate
         extrinsic_reward = self.get_extrinsic_reward(client)
         client.accumulative_extrinsic_reawad += extrinsic_reward
         
+        client.episode_step += 1
+        client.hmarl_step += 1
+        state_goal = client.get_state_goal()
+        
+        self.update_local_lock.acquire()
         # Push data to local controller
         if client.hmarl_step > 0:
             self.agent.ctrl_replay_memory.push(client.last_state, client.rate_idx, client.get_state_goal(), intrinsic_reward, done)
-            
         # Train local controller
         if self.train and self.agent.local_count >= TRAIN_START_LOCAL and self.agent.local_count % TRAIN_INTERVAL == 0:
             Logger.log("Training local controller...")
             for t in range(TRAIN_TIMES):
                 self.agent.update_meta_controller()
             Logger.log("Local controller training completed")
-                
-        client.episode_step += 1
-        client.hmarl_step += 1
-        
         # Select new rate
-        state_goal = client.get_state_goal()
-        # print(state_goal.shape)
         epsilon = client.controller_epsilon
         client.rate, client.rate_idx = self.select_rate(state_goal, epsilon)
-        Logger.log(f"Client {client.client_idx} gets rate {client.rate}") 
+        self.update_local_lock.release()
+        Logger.log(f"Client {client.client_idx} gets rate {client.rate} with epsilon {client.controller_epsilon}") 
         
         return client.rate, client.goal, intrinsic_reward, extrinsic_reward
         

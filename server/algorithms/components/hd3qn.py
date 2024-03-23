@@ -41,7 +41,8 @@ class MetaController(nn.Module):
         super(MetaController, self).__init__()
         self.r_fc = nn.Linear(3, 128)
         self.w_fc = nn.Linear(1, 128)
-        self.rw_fc = nn.Linear(256, 128)
+        self.rw_fc_0 = nn.Linear(256, 128)
+        # self.rw_fc_1 = nn.Linear(256, 128)
         
         self.V = nn.Linear(128, 1)
         self.A = nn.Linear(128, out_features)
@@ -53,7 +54,8 @@ class MetaController(nn.Module):
         x_r = F.relu(self.r_fc(rates_batch))
         x_w = F.relu(self.w_fc(weights_batch))
         x_rw = torch.cat([x_r, x_w], 1)
-        x_o = F.relu(self.rw_fc(x_rw))
+        x_o = F.relu(self.rw_fc_0(x_rw))
+        # x_o = F.relu(self.rw_fc_1(x_o))
         
         V = self.V(x_o)
         A = self.A(x_o)
@@ -80,9 +82,9 @@ class Controller(nn.Module):
         self.input_channel = 1
         self.action_space = out_features
         kernel_size = 4
-        channel_cnn = 64
-        channel_fc = 64
-        collaborate_fc = 128
+        channel_cnn = 128
+        channel_fc = 128
+        collaborate_fc = 256
 
         self.bn = nn.BatchNorm1d(self.input_channel)
 

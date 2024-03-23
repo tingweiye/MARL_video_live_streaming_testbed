@@ -14,7 +14,7 @@ INITIAL_RATE = VIDEO_BIT_RATE[int(len(VIDEO_BIT_RATE) // 2)]
 MAX_EPSILON_C = 0.8
 MAX_EPSILON_M = 0.8
 MIN_EPSILON = 0.01
-EPSILON_DECAY = 0.995
+EPSILON_DECAY = 0.999
 
 QUALTITY_COEF = 5
 FREEZE_PENALTY = 25
@@ -149,8 +149,10 @@ class client_info:
                 
         if self.goal_reached():
             reward = reward + 10
+            print("goal reached")
         elif done:
             reward = reward - 50
+            print("failed to reach the goal")
 
         # reward_file.write(str(reward_self) + '\t' +
         #             str(fair_coef) + '\t' +
