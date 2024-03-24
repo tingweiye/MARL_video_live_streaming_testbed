@@ -15,16 +15,16 @@ dtype = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTens
 VIDEO_BIT_RATE = Config.BITRATE  # Kbps
 MAX_RATE = float(np.max(VIDEO_BIT_RATE))
 
-MAX_EP_LEN = 10
-TRAIN_START_META = 500
-TRAIN_START_LOCAL = 1000
-TRAIN_INTERVAL = 50
-TRAIN_TIMES = 50
 # MAX_EP_LEN = 10
-# TRAIN_START_META = 1
-# TRAIN_START_LOCAL = 1
-# TRAIN_INTERVAL = 5
-# TRAIN_TIMES = 5
+# TRAIN_START_META = 500
+# TRAIN_START_LOCAL = 1000
+# TRAIN_INTERVAL = 50
+# TRAIN_TIMES = 50
+MAX_EP_LEN = 10
+TRAIN_START_META = 1
+TRAIN_START_LOCAL = 1
+TRAIN_INTERVAL = 5
+TRAIN_TIMES = 5
 
 class hmarl_server(pesudo_server):
     
@@ -109,6 +109,7 @@ class hmarl_server(pesudo_server):
         if client.goal_reached() or client.episode_step == MAX_EP_LEN or client.hmarl_step == -1:  
             # Select goals
             # Initialize steps
+            self.update_meta_lock.acquire()
             done = True
             if not client.goal_reached() and client.episode_step == MAX_EP_LEN:
                 end = True
@@ -130,7 +131,6 @@ class hmarl_server(pesudo_server):
             client.accumulative_extrinsic_reawad = 0
             
             # Train meta controller
-            self.update_meta_lock.acquire()
             meta_epsilon = client.meta_controller_epsilon
             client.goal, client.goal_idx = self.select_goal(meta_state, meta_epsilon)
             if client.client_idx == 0:
@@ -143,7 +143,7 @@ class hmarl_server(pesudo_server):
             if self.train and self.agent.meta_count >= TRAIN_START_META and self.agent.meta_count % TRAIN_INTERVAL == 0:
                 Logger.log("Training meta controller...")
                 for t in range(TRAIN_TIMES):
-                    self.agent.update_controller()
+                    self.agent.update_meta_controller()
                 Logger.log("Meta controller training completed")
             self.update_meta_lock.release()
             client.epsilon_decay()
@@ -160,13 +160,14 @@ class hmarl_server(pesudo_server):
         
         self.update_local_lock.acquire()
         # Push data to local controller
-        if client.hmarl_step > 0:
+        if client.hmarl_step > 1:
+            # print("ACTION: ", client.rate_idx)
             self.agent.ctrl_replay_memory.push(client.last_state, client.rate_idx, client.get_state_goal(), intrinsic_reward, done)
         # Train local controller
         if self.train and self.agent.local_count >= TRAIN_START_LOCAL and self.agent.local_count % TRAIN_INTERVAL == 0:
             Logger.log("Training local controller...")
             for t in range(TRAIN_TIMES):
-                self.agent.update_meta_controller()
+                self.agent.update_controller()
             Logger.log("Local controller training completed")
         # Select new rate
         epsilon = client.controller_epsilon
