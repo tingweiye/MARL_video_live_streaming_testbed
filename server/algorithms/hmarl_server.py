@@ -15,16 +15,16 @@ dtype = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTens
 VIDEO_BIT_RATE = Config.BITRATE  # Kbps
 MAX_RATE = float(np.max(VIDEO_BIT_RATE))
 
-# MAX_EP_LEN = 10
-# TRAIN_START_META = 500
-# TRAIN_START_LOCAL = 1000
-# TRAIN_INTERVAL = 50
-# TRAIN_TIMES = 50
 MAX_EP_LEN = 10
-TRAIN_START_META = 1
-TRAIN_START_LOCAL = 1
-TRAIN_INTERVAL = 5
-TRAIN_TIMES = 5
+TRAIN_START_META = 500
+TRAIN_START_LOCAL = 1000
+TRAIN_INTERVAL = 50
+TRAIN_TIMES = 50
+# MAX_EP_LEN = 10
+# TRAIN_START_META = 1
+# TRAIN_START_LOCAL = 1
+# TRAIN_INTERVAL = 5
+# TRAIN_TIMES = 5
 
 class hmarl_server(pesudo_server):
     
