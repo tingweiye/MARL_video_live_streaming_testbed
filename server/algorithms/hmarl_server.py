@@ -105,24 +105,23 @@ class hmarl_server(pesudo_server):
         done = False
         end = False
         # print(client.client_idx, client.controller_epsilon, client.meta_controller_epsilon)
+        steps_taken = client.episode_step if client.episode_step != -1 else 0
         # Goal reached, max steps reached or client started
-        if client.goal_reached() or client.episode_step == MAX_EP_LEN or client.hmarl_step == -1:  
+        if client.goal_reached() or steps_taken == MAX_EP_LEN or client.hmarl_step == -1:  
             # Select goals
             # Initialize steps
             self.update_meta_lock.acquire()
             done = True
-            if not client.goal_reached() and client.episode_step == MAX_EP_LEN:
+            if not client.goal_reached() and steps_taken == MAX_EP_LEN:
                 end = True
             if client.hmarl_step == -1:
                 done = False
                 client.hmarl_step = 0
-            steps_taken = client.episode_step if client.episode_step != -1 else 0
-            
             # Get meta state
             meta_state = self.get_meta_state(client, steps_taken)
             # Push data to meta controller
             if client.hmarl_step > 0:
-                F = client.accumulative_extrinsic_reawad / client.episode_step
+                F = client.accumulative_extrinsic_reawad / steps_taken
                 print(f"Client{client.client_idx} gets Reward F: {F}")
                 self.agent.meta_replay_memory.push(client.last_meta_state, client.goal_idx, meta_state, F, False)
             client.last_meta_state = meta_state.copy()
@@ -149,7 +148,7 @@ class hmarl_server(pesudo_server):
             client.epsilon_decay()
             
         # Get extrinsic and intrinsic rewards
-        intrinsic_reward = client.get_intrinsic_reward(end)
+        intrinsic_reward = client.get_intrinsic_reward(end, steps_taken)
         client.last_rate = client.rate
         extrinsic_reward = self.get_extrinsic_reward(client)
         client.accumulative_extrinsic_reawad += extrinsic_reward

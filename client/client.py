@@ -337,7 +337,7 @@ class Client:
         extrinsic_reward = info["extrinsic_reward"]
         # print(download_rate)
         download_end = time.time()
-        self.download_time = download_end - download_start - prepare
+        self.download_time = download_end - download_start #- prepare ######## important!!!!!!
         
         ######### get freeze time #########
         # release block for the player to play downloaded segments

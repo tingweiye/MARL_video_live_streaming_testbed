@@ -134,7 +134,7 @@ class client_info:
                 - QOE_SMOOTH_PENALTY * np.abs(log_rate - log_last_rate)
         return QoE
     
-    def get_intrinsic_reward(self, done, reward_file=""):
+    def get_intrinsic_reward(self, done, steps_taken, reward_file=""):
         # -- log scale reward --
         # print(self.rate, self.last_rate)
         log_rate = np.log(self.rate)
@@ -148,11 +148,9 @@ class client_info:
         # print(QUALTITY_COEF*log_rate, FREEZE_PENALTY * max(0.5, self.freeze))
                 
         if self.goal_reached():
-            reward = reward + 10
-            print("goal reached")
-        elif done:
-            reward = reward - 50
-            print("failed to reach the goal")
+            reward = reward + 20
+        if steps_taken >= 5: 
+            reward -= steps_taken * steps_taken / 3
 
         # reward_file.write(str(reward_self) + '\t' +
         #             str(fair_coef) + '\t' +
