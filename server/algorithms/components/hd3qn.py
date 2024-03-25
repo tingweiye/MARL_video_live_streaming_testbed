@@ -71,7 +71,7 @@ class MetaController(nn.Module):
 
 
 class Controller(nn.Module):
-    def __init__(self, in_features=4, out_features=6, lookback=8):
+    def __init__(self, in_features=4, out_features=6, lookback=10):
         """
         Initialize a Controller(given goal) of h-DQN for the diecreate mdp experiment
             in_features: number of features of input.
@@ -90,13 +90,18 @@ class Controller(nn.Module):
 
         self.conv1 = nn.Conv1d(self.input_channel, channel_cnn, kernel_size) # rate
         self.conv2 = nn.Conv1d(self.input_channel, channel_cnn, kernel_size) # bw
-        self.b_fc = nn.Linear(self.input_channel, channel_fc) # buffer
-        self.g_fc = nn.Linear(self.input_channel, channel_fc) # goal
+        self.conv3 = nn.Conv1d(self.input_channel, channel_cnn, kernel_size) # buffer
+        self.conv4 = nn.Conv1d(self.input_channel, channel_cnn, kernel_size) # goal
+        # self.b_fc = nn.Linear(self.input_channel, channel_fc) # buffer
+        # self.g_fc_0 = nn.Linear(self.input_channel, channel_fc) # goal
 
-        incoming_size = 2*channel_cnn*(lookback-kernel_size+1) + channel_fc  # rate, bw, buffer
+        incoming_size = 3*channel_cnn*(lookback-kernel_size+1)  # rate, bw, buffer
+        # incoming_size = 2*channel_cnn*(lookback-kernel_size+1) + channel_fc  # rate, bw, buffer
 
         self.s_fc = nn.Linear(in_features=incoming_size, out_features=channel_fc)
-        self.fc = nn.Linear(in_features=channel_fc*2, out_features=collaborate_fc)
+        self.g_fc_1 = nn.Linear(channel_cnn*(lookback-kernel_size+1), channel_fc) # goal
+
+        self.fc_0 = nn.Linear(in_features=channel_fc*2, out_features=collaborate_fc)
         self.V = nn.Linear(in_features=collaborate_fc, out_features=1)
         self.A = nn.Linear(in_features=collaborate_fc, out_features=self.action_space)
 
@@ -107,11 +112,11 @@ class Controller(nn.Module):
         bandwitdh_batch = inputs[:, 1:2, :]
         bandwitdh_batch = self.bn(bandwitdh_batch)
 
-        x_r = F.relu(self.conv1(rates_batch))
-        x_bw = F.relu(self.conv2(bandwitdh_batch))
+        x_r = F.relu(self.conv1(inputs[:, 0:1, :]))
+        x_bw = F.relu(self.conv2(inputs[:, 1:2, :]))
         # x_3 = F.relu(self.actor_conv3(download_time_batch))
-        x_b = F.relu(self.b_fc(inputs[:, 2:3, -1]))
-        x_g = F.relu(self.g_fc(inputs[:, 3:4, -1]))
+        x_b = F.relu(self.conv3(inputs[:, 2:3, :]))
+        x_g = F.relu(self.conv4(inputs[:, 3:4, :]))
 
         x_r = x_r.view(-1, self.num_flat_features(x_r))
         x_bw = x_bw.view(-1, self.num_flat_features(x_bw))
@@ -121,10 +126,12 @@ class Controller(nn.Module):
 
         x_s = torch.cat([x_r, x_bw, x_b], 1)
         x_s = F.relu(self.s_fc(x_s))        
+        x_g = F.relu(self.g_fc_1(x_g))
         x_s = x_s.view(-1, self.num_flat_features(x_s))
+        x_g = x_g.view(-1, self.num_flat_features(x_g))
         
         x = torch.cat([x_s, x_g], 1)
-        x = F.relu(self.fc(x))
+        x = F.relu(self.fc_0(x))
         
         V = self.V(x)
         A = self.A(x)

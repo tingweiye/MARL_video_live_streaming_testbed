@@ -6,7 +6,7 @@ from utils.utils import MovingQueue
 
 S_INFO = 4
 S_META = 4
-S_LEN = 8
+S_LEN = 10
 VIDEO_BIT_RATE = Config.BITRATE  # Kbps
 MAX_RATE = float(np.max(VIDEO_BIT_RATE))
 INITIAL_RATE = VIDEO_BIT_RATE[int(len(VIDEO_BIT_RATE) // 2)]
@@ -52,7 +52,7 @@ class client_info:
         self.controller_epsilon = MAX_EPSILON_C
         self.meta_controller_epsilon = MAX_EPSILON_M
         
-        self.state = np.zeros((S_INFO-1,S_LEN))
+        self.state = np.zeros((S_INFO,S_LEN))
         self.last_state = np.zeros((S_INFO,S_LEN))
         self.last_meta_state = np.zeros((1, S_META))
         
@@ -120,9 +120,8 @@ class client_info:
         return self.goal == self.rate
     
     def get_state_goal(self):
-        goal = np.zeros((1, 8))
-        goal[0, -1] = self.goal / MAX_RATE
-        return np.concatenate([self.state, goal], axis=0)
+        self.state[3, -1] = self.goal / MAX_RATE
+        return self.state
     
     def get_qoe(self):
         log_rate = np.log(self.rate)

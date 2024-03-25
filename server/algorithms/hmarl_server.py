@@ -16,8 +16,8 @@ VIDEO_BIT_RATE = Config.BITRATE  # Kbps
 MAX_RATE = float(np.max(VIDEO_BIT_RATE))
 
 MAX_EP_LEN = 10
-TRAIN_START_META = 500
-TRAIN_START_LOCAL = 1000
+TRAIN_START_META = 2000
+TRAIN_START_LOCAL = 3000
 TRAIN_INTERVAL = 50
 TRAIN_TIMES = 50
 # MAX_EP_LEN = 10
@@ -160,7 +160,11 @@ class hmarl_server(pesudo_server):
         self.update_local_lock.acquire()
         # Push data to local controller
         if client.hmarl_step > 1:
-            # print("ACTION: ", client.rate_idx)
+            print("++++++++++++++")
+            print(client.last_state)
+            print("++++++++++++++")
+            print(client.get_state_goal())
+            print("++++++++++++++")
             self.agent.ctrl_replay_memory.push(client.last_state, client.rate_idx, client.get_state_goal(), intrinsic_reward, done)
         # Train local controller
         if self.train and self.agent.local_count >= TRAIN_START_LOCAL and self.agent.local_count % TRAIN_INTERVAL == 0:
