@@ -13,7 +13,7 @@ class Config:
     # clients
     INITIAL_DUMMY_LATENCY = 3.0
     INITIAL_RATE = BITRATE[int(len(BITRATE) / 2)]
-    INITIAL_LATENCY = 1.5
+    INITIAL_LATENCY = 3
     CLIENT_MAX_BUFFER_LEN = 5
     MAX_HISTORY = 600
     

@@ -1,3 +1,4 @@
+import random
 import sys
 import threading
 import torch
@@ -100,6 +101,33 @@ class hmarl_server(pesudo_server):
         self.agent.local_count += 1
         return VIDEO_BIT_RATE[action.item()], action
     
+    def pesudo_select_goal(client:client_info):
+        sample = random.random()
+        if client.client_idx == 0:
+            if sample < 0.1:
+                client.goal = 4.0
+            elif sample < 0.2:
+                client.goal = 3
+            elif sample < 0.25:
+                client.goal = 6.5
+            else:
+                client.goal = 5.0
+        elif client.client_idx == 1:
+            if sample < 0.1:
+                client.goal = 6.5
+            elif sample < 0.2:
+                client.goal = 10.0
+            else:
+                client.goal = 8.0
+        elif client.client_idx == 2:
+            if sample < 0.1:
+                client.goal = 3.0
+            elif sample < 0.2:
+                client.goal = 5.0
+            else:
+                client.goal = 4.0
+        return client.goal
+    
     def solve(self, idx):
         client = self.client_list[idx]
         done = False
@@ -132,12 +160,8 @@ class hmarl_server(pesudo_server):
             # Train meta controller
             meta_epsilon = client.meta_controller_epsilon
             client.goal, client.goal_idx = self.select_goal(meta_state, meta_epsilon)
-            if client.client_idx == 0:
-                client.goal = 5.0
-            elif client.client_idx == 1:
-                client.goal = 8.0
-            elif client.client_idx == 2:
-                client.goal = 4.0
+            self.pesudo_select_goal(client)
+            
             Logger.log(f"Client {client.client_idx} gets goal {client.goal} with epsilon {client.meta_controller_epsilon}")
             if self.train and self.agent.meta_count >= TRAIN_START_META and self.agent.meta_count % TRAIN_INTERVAL == 0:
                 Logger.log("Training meta controller...")

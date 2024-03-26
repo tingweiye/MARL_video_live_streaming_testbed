@@ -148,8 +148,8 @@ class client_info:
                 
         if self.goal_reached():
             reward = reward + 20
-        if steps_taken >= 5: 
-            reward -= steps_taken * steps_taken / 3
+        # if steps_taken >= 5: 
+        #     reward -= steps_taken * steps_taken / 3
 
         # reward_file.write(str(reward_self) + '\t' +
         #             str(fair_coef) + '\t' +

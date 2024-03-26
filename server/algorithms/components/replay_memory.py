@@ -22,8 +22,6 @@ class ReplayMemory(object):
 
     def sample(self, batch_size):
         state_batch, action_batch, next_state_batch, ex_reward_batch, done_mask = zip(*random.sample(self.memory, batch_size))
-        # print("vbabvouj", np.array(state_batch).shape)
-        # state_batch = np.concatenate(state_batch, axis=0)
         state_batch = np.array(state_batch)
         action_batch = np.array(action_batch)
         next_state_batch = np.array(next_state_batch)
