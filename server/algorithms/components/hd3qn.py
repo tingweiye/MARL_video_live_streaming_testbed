@@ -86,7 +86,7 @@ class Controller(nn.Module):
         channel_fc = 128
         collaborate_fc = 256
 
-        self.bn = nn.BatchNorm1d(self.input_channel)
+        # self.bn = nn.BatchNorm1d(self.input_channel)
 
         self.conv1 = nn.Conv1d(self.input_channel, channel_cnn, kernel_size) # rate
         self.conv2 = nn.Conv1d(self.input_channel, channel_cnn, kernel_size) # bw
@@ -106,11 +106,11 @@ class Controller(nn.Module):
         self.A = nn.Linear(in_features=collaborate_fc, out_features=self.action_space)
 
     def forward(self, inputs):
-        rates_batch = inputs[:, 0:1, :]
-        rates_batch = self.bn(rates_batch)
+        # rates_batch = inputs[:, 0:1, :]
+        # rates_batch = self.bn(rates_batch)
         
-        bandwitdh_batch = inputs[:, 1:2, :]
-        bandwitdh_batch = self.bn(bandwitdh_batch)
+        # bandwitdh_batch = inputs[:, 1:2, :]
+        # bandwitdh_batch = self.bn(bandwitdh_batch)
 
         x_r = F.relu(self.conv1(inputs[:, 0:1, :]))
         x_bw = F.relu(self.conv2(inputs[:, 1:2, :]))
@@ -175,7 +175,7 @@ class hDQN():
                  num_goal=6,
                  num_action=6,
                  replay_memory_size=10000,
-                 batch_size=64,
+                 batch_size=2,
                  tau=0.01):
         ###############
         # BUILD MODEL #
