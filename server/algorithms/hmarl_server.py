@@ -21,11 +21,15 @@ TRAIN_START_META = 2000
 TRAIN_START_LOCAL = 3000
 TRAIN_INTERVAL = 50
 TRAIN_TIMES = 50
+MODEL_SAVE_INTERVAL = 5000
+META_MODEL_SAVE_INTERVAL = 2000
 # MAX_EP_LEN = 10
 # TRAIN_START_META = 1
 # TRAIN_START_LOCAL = 1
 # TRAIN_INTERVAL = 5
 # TRAIN_TIMES = 5
+# MODEL_SAVE_INTERVAL = 1
+
 
 class hmarl_server(pesudo_server):
     
@@ -168,8 +172,15 @@ class hmarl_server(pesudo_server):
                 for t in range(TRAIN_TIMES):
                     self.agent.update_meta_controller()
                 Logger.log("Meta controller training completed")
+            if self.train and self.agent.meta_count >= TRAIN_START_META and self.agent.meta_count % META_MODEL_SAVE_INTERVAL == 0:
+                Logger.log("Meta controller model saved")
+                self.agent.save_meta_controller_model(self.agent.meta_count)
             self.update_meta_lock.release()
             client.epsilon_decay()
+            
+            # Logger.log("Controller model loaded")
+            # self.agent.load_controller_model(client.hmarl_step)
+            # self.agent.load_meta_controller_model(client.hmarl_step)
             
         # Get extrinsic and intrinsic rewards
         intrinsic_reward = client.get_intrinsic_reward(end, steps_taken)
@@ -191,6 +202,10 @@ class hmarl_server(pesudo_server):
             for t in range(TRAIN_TIMES):
                 self.agent.update_controller()
             Logger.log("Local controller training completed")
+        # Save controller model
+        if self.train and self.agent.local_count >= TRAIN_START_LOCAL and self.agent.local_count % MODEL_SAVE_INTERVAL == 0:
+            Logger.log("Local controller model saved")
+            self.agent.save_controller_model(self.agent.local_count)
         # Select new rate
         epsilon = client.controller_epsilon
         client.rate, client.rate_idx = self.select_rate(state_goal, epsilon)

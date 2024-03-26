@@ -175,7 +175,7 @@ class hDQN():
                  num_goal=6,
                  num_action=6,
                  replay_memory_size=10000,
-                 batch_size=2,
+                 batch_size=64,
                  tau=0.01):
         ###############
         # BUILD MODEL #
@@ -232,6 +232,26 @@ class hDQN():
  
         for q_target_params, q_eval_params in zip(self.target_controller.parameters(), self.controller.parameters()):
             q_target_params.data.copy_(tau * q_eval_params + (1 - tau) * q_target_params)
+            
+    def save_controller_model(self, epoch):
+        add_str = 'dqn'
+        model_save_path = "./models/hmarl/local/%s_%s_%d_ctrl.model" %(str('abr'), add_str, int(epoch))
+        self.controller.save_checkpoint(model_save_path)
+    
+    def save_meta_controller_model(self, epoch):
+        add_str = 'dqn'
+        model_save_path = "./models/hmarl/meta/%s_%s_%d_meta.model" %(str('abr'), add_str, int(epoch))
+        self.meta_controller.save_checkpoint(model_save_path)
+        
+    def load_controller_model(self, epoch):
+        add_str = 'dqn'
+        model_load_path = "./models/hmarl/local/%s_%s_%d_ctrl.model" %(str('abr'), add_str, int(epoch))
+        self.controller.load_checkpoint(model_load_path)
+        
+    def load_meta_controller_model(self, epoch):
+        add_str = 'dqn'
+        model_load_path = "./models/hmarl/meta/%s_%s_%d_meta.model" %(str('abr'), add_str, int(epoch))
+        self.meta_controller.load_checkpoint(model_load_path)
         
     def update_meta_controller(self):
         if len(self.meta_replay_memory) < self.batch_size:
