@@ -101,7 +101,7 @@ class hmarl_server(pesudo_server):
         self.agent.local_count += 1
         return VIDEO_BIT_RATE[action.item()], action
     
-    def pesudo_select_goal(client:client_info):
+    def pesudo_select_goal(self, client:client_info):
         sample = random.random()
         if client.client_idx == 0:
             if sample < 0.1:
