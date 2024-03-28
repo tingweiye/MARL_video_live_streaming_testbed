@@ -20,7 +20,7 @@ QUALTITY_COEF = 5
 FREEZE_PENALTY = 50
 LATENCY_PENALTY = 1
 JUMP_PENALTY = 3
-SMOOTH_PENALTY = 8
+SMOOTH_PENALTY = 9
 
 QOE_QUALTITY_COEF = 10
 QOE_FREEZE_PENALTY = 25
@@ -139,8 +139,8 @@ class client_info:
         log_rate = np.log(self.rate)
         log_last_rate = np.log(self.last_rate)
         
-        reward =  QUALTITY_COEF  * log_rate \
-                - FREEZE_PENALTY * max(0.5, self.freeze) \
+        reward  = QUALTITY_COEF  * log_rate \
+                - FREEZE_PENALTY * max(0.75, self.freeze) \
                 - LATENCY_PENALTY* self.latency \
                 - JUMP_PENALTY   * self.jump \
                 - SMOOTH_PENALTY * np.abs(log_rate - log_last_rate)
