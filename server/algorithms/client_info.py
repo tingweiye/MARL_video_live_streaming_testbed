@@ -17,10 +17,10 @@ MIN_EPSILON = 0.01
 EPSILON_DECAY = 0.9995
 
 QUALTITY_COEF = 5
-FREEZE_PENALTY = 50
+FREEZE_PENALTY = 80
 LATENCY_PENALTY = 1
 JUMP_PENALTY = 3
-SMOOTH_PENALTY = 9
+SMOOTH_PENALTY = 10
 
 QOE_QUALTITY_COEF = 10
 QOE_FREEZE_PENALTY = 25
@@ -148,6 +148,8 @@ class client_info:
                 
         if self.goal_reached():
             reward = reward + 20
+            if self.goal <= 3:
+                reward += 10
         if steps_taken >= 5: 
             reward -= steps_taken * steps_taken / 3
 
@@ -158,6 +160,6 @@ class client_info:
         #             )
         # reward_file.flush()
         
-        return reward + 10
+        return reward + 20
     
     
