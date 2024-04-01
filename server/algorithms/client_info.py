@@ -4,20 +4,20 @@ sys.path.append("..")
 from utils.config import Config
 from utils.utils import MovingQueue
 
-S_INFO = 4
+S_INFO = 5
 S_META = 4
 S_LEN = 10
 VIDEO_BIT_RATE = Config.BITRATE  # Kbps
 MAX_RATE = float(np.max(VIDEO_BIT_RATE))
 INITIAL_RATE = VIDEO_BIT_RATE[int(len(VIDEO_BIT_RATE) // 2)]
 
-MAX_EPSILON_C = 0.8
-MAX_EPSILON_M = 0.8
+MAX_EPSILON_C = 0.9
+MAX_EPSILON_M = 0.9
 MIN_EPSILON = 0.01
 EPSILON_DECAY = 0.9995
 
 QUALTITY_COEF = 5
-FREEZE_PENALTY = 80
+FREEZE_PENALTY = 50
 LATENCY_PENALTY = 1
 JUMP_PENALTY = 3
 SMOOTH_PENALTY = 10
@@ -34,9 +34,10 @@ class client_info:
         self.weight = weight
         self.rate, self.last_rate = INITIAL_RATE, INITIAL_RATE
         self.rate_idx = VIDEO_BIT_RATE.index(INITIAL_RATE)
-        self.bw, self.buffer, self.freeze, self.latency, self.jump, self.startTime, self.goal = 0, 0, 0, 0, 0, 0, 0
+        self.bw, self.idle, self.buffer, self.freeze, self.latency, self.jump, self.startTime, self.goal = 0, 0, 0, 0, 0, 0, 0, 0
         self.rate_his = MovingQueue(Config.SERVER_ALGO_BUFFER_LEN) 
         self.bw_his = MovingQueue(Config.SERVER_ALGO_BUFFER_LEN) 
+        self.idle_his = MovingQueue(Config.SERVER_ALGO_BUFFER_LEN) 
         self.buffer_his = MovingQueue(Config.SERVER_ALGO_BUFFER_LEN) 
         self.freeze_his = MovingQueue(Config.SERVER_ALGO_BUFFER_LEN)
         self.latency_his = MovingQueue(Config.SERVER_ALGO_BUFFER_LEN) 
@@ -92,6 +93,7 @@ class client_info:
         if info["rate"] != 0:
             self.rate = info["rate"]
         self.bw = info["bw"]
+        self.idle = info["idle"]
         self.buffer = info["buffer"]
         self.freeze = info["freeze"]
         self.latency = info["latency"]
@@ -100,6 +102,7 @@ class client_info:
         
         self.rate_his.add(self.rate)
         self.bw_his.add(self.bw)
+        self.idle_his.add(self.idle)
         self.buffer_his.add(self.buffer)
         self.freeze_his.add(self.freeze)
         self.latency_his.add(self.latency)
@@ -111,6 +114,7 @@ class client_info:
         self.state[0, -1] = self.rate / MAX_RATE
         self.state[1, -1] = self.get_smooth_bw() / 10
         self.state[2, -1] = (self.buffer-1) / Config.CLIENT_MAX_BUFFER_LEN
+        self.state[3, -1] = self.idle
 
     def epsilon_decay(self):
         self.controller_epsilon *= EPSILON_DECAY
@@ -120,7 +124,7 @@ class client_info:
         return self.goal == self.rate
     
     def get_state_goal(self):
-        self.state[3, -1] = self.goal / MAX_RATE
+        self.state[4, -1] = self.goal / MAX_RATE
         return self.state
     
     def get_qoe(self):
@@ -137,6 +141,7 @@ class client_info:
         # -- log scale reward --
         # print(self.rate, self.last_rate)
         log_rate = np.log(self.rate)
+        log_goal = np.log(self.goal)
         log_last_rate = np.log(self.last_rate)
         
         reward  = QUALTITY_COEF  * log_rate \
@@ -147,9 +152,12 @@ class client_info:
         # print(QUALTITY_COEF*log_rate, FREEZE_PENALTY * max(0.5, self.freeze))
                 
         if self.goal_reached():
-            reward = reward + 20
-            if self.goal <= 3:
-                reward += 10
+            reward += 20
+        elif self.goal < self.rate:
+            reward -= QUALTITY_COEF * (log_rate - log_goal)
+        else:
+            reward += QUALTITY_COEF * log_rate
+                                       
         if steps_taken >= 5: 
             reward -= steps_taken * steps_taken / 3
 

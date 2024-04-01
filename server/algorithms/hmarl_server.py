@@ -111,7 +111,7 @@ class hmarl_server(pesudo_server):
             if sample < 0.1:
                 client.goal = 4.0
             elif sample < 0.2:
-                client.goal = 3.0
+                client.goal = 2.5
             elif sample < 0.25:
                 client.goal = 6.5
             else:
@@ -125,7 +125,7 @@ class hmarl_server(pesudo_server):
                 client.goal = 8.0
         elif client.client_idx == 2:
             if sample < 0.1:
-                client.goal = 3.0
+                client.goal = 2.5
             elif sample < 0.2:
                 client.goal = 5.0
             else:

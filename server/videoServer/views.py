@@ -39,6 +39,7 @@ async def download_video(request, video_filename):
     request_gop = int(request.META.get('HTTP_GOP'))
     request_rate = float(request.META.get('HTTP_RATE'))
     estimated_bw = float(request.META.get('HTTP_BW'))
+    client_idle = float(request.META.get('HTTP_IDLE'))
     client_buffer = float(request.META.get('HTTP_BUFFER'))
     client_freeze = float(request.META.get('HTTP_FREEZE'))
     client_latency = float(request.META.get('HTTP_LATENCY'))
@@ -50,6 +51,7 @@ async def download_video(request, video_filename):
     server_time = server.get_server_time()
     info = {"rate": request_rate,
             "bw": estimated_bw,
+            "idle": client_idle,
             "buffer": client_buffer,
             "freeze": client_freeze,
             "latency": client_latency,

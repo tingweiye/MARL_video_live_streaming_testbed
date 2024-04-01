@@ -88,12 +88,13 @@ class Controller(nn.Module):
 
         self.conv1 = nn.Conv1d(self.input_channel, channel_cnn, kernel_size) # rate
         self.conv2 = nn.Conv1d(self.input_channel, channel_cnn, kernel_size) # bw
-        self.conv3 = nn.Conv1d(self.input_channel, channel_cnn, kernel_size) # buffer
-        self.conv4 = nn.Conv1d(self.input_channel, channel_cnn, kernel_size) # goal
+        self.conv3 = nn.Conv1d(self.input_channel, channel_cnn, kernel_size) # idle
+        self.conv4 = nn.Conv1d(self.input_channel, channel_cnn, kernel_size) # buffer
+        self.conv5 = nn.Conv1d(self.input_channel, channel_cnn, kernel_size) # goal
         # self.b_fc = nn.Linear(self.input_channel, channel_fc) # buffer
         # self.g_fc_0 = nn.Linear(self.input_channel, channel_fc) # goal
 
-        incoming_size = 3*channel_cnn*(lookback-kernel_size+1)  # rate, bw, buffer
+        incoming_size = 4*channel_cnn*(lookback-kernel_size+1)  # rate, bw, idle, buffer
         # incoming_size = 2*channel_cnn*(lookback-kernel_size+1) + channel_fc  # rate, bw, buffer
 
         self.s_fc = nn.Linear(in_features=incoming_size, out_features=channel_fc)
@@ -112,17 +113,17 @@ class Controller(nn.Module):
 
         x_r = F.relu(self.conv1(inputs[:, 0:1, :]))
         x_bw = F.relu(self.conv2(inputs[:, 1:2, :]))
-        # x_3 = F.relu(self.actor_conv3(download_time_batch))
-        x_b = F.relu(self.conv3(inputs[:, 2:3, :]))
-        x_g = F.relu(self.conv4(inputs[:, 3:4, :]))
+        x_i = F.relu(self.conv3(inputs[:, 2:3, :]))
+        x_b = F.relu(self.conv4(inputs[:, 3:4, :]))
+        x_g = F.relu(self.conv5(inputs[:, 4:5, :]))
 
         x_r = x_r.view(-1, self.num_flat_features(x_r))
         x_bw = x_bw.view(-1, self.num_flat_features(x_bw))
-        # x_3 = x_3.view(-1, self.num_flat_features(x_3))
+        x_i = x_i.view(-1, self.num_flat_features(x_i))
         x_b = x_b.view(-1, self.num_flat_features(x_b))
         x_g = x_g.view(-1, self.num_flat_features(x_g))
 
-        x_s = torch.cat([x_r, x_bw, x_b], 1)
+        x_s = torch.cat([x_r, x_bw, x_i, x_b], 1)
         x_s = F.relu(self.s_fc(x_s))        
         x_g = F.relu(self.g_fc_1(x_g))
         x_s = x_s.view(-1, self.num_flat_features(x_s))

@@ -253,6 +253,7 @@ class Client:
                    'gop': str(self.next_gop),
                    'rate': str(rate),
                    'bw': str(self.bw_his[-1]),
+                   'idle': str(self.idle_his[-1]),
                    'buffer': str(self.buffer_his[-1]),
                    'freeze': str(self.freeze_his[-1]),
                    'latency': str(self.latency_his[-1]),
@@ -337,7 +338,7 @@ class Client:
         extrinsic_reward = info["extrinsic_reward"]
         # print(download_rate)
         download_end = time.time()
-        self.download_time = download_end - download_start #- prepare ######## important!!!!!!
+        self.download_time = download_end - download_start - prepare ######## important!!!!!!
         
         ######### get freeze time #########
         # release block for the player to play downloaded segments
@@ -357,18 +358,18 @@ class Client:
         
         current_play_time = self.current_play_seconds()
         ######### get latency #########
-        if self.latency == Config.INITIAL_DUMMY_LATENCY:
-            # print(self.current_play_seconds())
-            self.latency = server_time + prepare - (time.time() - self.base_time - self.accumulative_latency) - self.rtt
-        else:
-            self.latency += 0 if self.freeze < 0.00001 else self.freeze # add freeze time
-            self.latency += self.accumulative_latency                   # speed correction
-            self.latency -= passive_jump                                # latency too high, server forces jump
-            self.accumulative_latency = 0.0                             # reset speed correction
+        # if self.latency == Config.INITIAL_DUMMY_LATENCY:
+        #     # print(self.current_play_seconds())
+        #     self.latency = server_time + prepare - (time.time() - self.base_time - self.accumulative_latency) - self.rtt
+        # else:
+        #     self.latency += 0 if self.freeze < 0.00001 else self.freeze # add freeze time
+        #     self.latency += self.accumulative_latency                   # speed correction
+        #     self.latency -= passive_jump                                # latency too high, server forces jump
+        #     self.accumulative_latency = 0.0                             # reset speed correction
 
         # print(f"Server time: {server_time}, current: {current_play_time}")
-        # self.accumulative_jump -= passive_jump
-        # self.latency = server_time + prepare - (time.time() - self.base_time - self.accumulative_latency) - self.rtt
+        self.accumulative_jump -= passive_jump
+        self.latency = server_time + prepare - (time.time() - self.base_time - self.accumulative_latency) - self.rtt
         # print(f"Latency: {self.latency:.3f}, server time: {server_time:.3f}, current: {time.time() - self.base_time:.3f}")
         ######### get bandwidth #########
         self.bw = download_rate / self.download_time
