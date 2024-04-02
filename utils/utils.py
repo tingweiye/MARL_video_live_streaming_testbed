@@ -93,6 +93,12 @@ class MovingQueue:
     def avg(self):
         return np.mean(self.queue)
     
+    def max(self):
+        return np.max(self.queue)
+    
+    def std(self):
+        return np.std(self.queue)
+    
     def get_last_mean(self, idx):
         return np.mean(list(self.queue)[-idx:])
     

@@ -20,7 +20,7 @@ class Server:
         if algo == "MARL":
             self.algo = marl_server()
         elif algo == "HMARL":
-            self.algo = hmarl_server()
+            self.algo = hmarl_server(True, False)
         else:
             self.algo = pesudo_server()
         

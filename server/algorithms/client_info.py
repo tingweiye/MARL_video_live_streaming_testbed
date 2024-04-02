@@ -20,7 +20,7 @@ QUALTITY_COEF = 5
 FREEZE_PENALTY = 50
 LATENCY_PENALTY = 1
 JUMP_PENALTY = 3
-SMOOTH_PENALTY = 10
+SMOOTH_PENALTY = 5
 
 QOE_QUALTITY_COEF = 10
 QOE_FREEZE_PENALTY = 25
@@ -34,9 +34,10 @@ class client_info:
         self.weight = weight
         self.rate, self.last_rate = INITIAL_RATE, INITIAL_RATE
         self.rate_idx = VIDEO_BIT_RATE.index(INITIAL_RATE)
-        self.bw, self.idle, self.buffer, self.freeze, self.latency, self.jump, self.startTime, self.goal = 0, 0, 0, 0, 0, 0, 0, 0
+        self.bw, self.idle, self.bw_idle, self.buffer, self.freeze, self.latency, self.jump, self.startTime, self.goal = 0, 0, 0, 0, 0, 0, 0, 0, 0
         self.rate_his = MovingQueue(Config.SERVER_ALGO_BUFFER_LEN) 
         self.bw_his = MovingQueue(Config.SERVER_ALGO_BUFFER_LEN) 
+        self.bw_idle_his = MovingQueue(Config.SERVER_ALGO_BUFFER_LEN) 
         self.idle_his = MovingQueue(Config.SERVER_ALGO_BUFFER_LEN) 
         self.buffer_his = MovingQueue(Config.SERVER_ALGO_BUFFER_LEN) 
         self.freeze_his = MovingQueue(Config.SERVER_ALGO_BUFFER_LEN)
@@ -62,6 +63,12 @@ class client_info:
         
     def get_smooth_bw(self):
         return self.bw_his.avg()
+    
+    def get_smooth_bw_idle(self):
+        return self.bw_idle_his.avg()
+    
+    def get_bottleneck(self):
+        return self.bw_his.max(), self.bw_his.std()
     
     def get_traffic_low_high(self, pivot):
         low, high = 0, 0
@@ -94,6 +101,7 @@ class client_info:
             self.rate = info["rate"]
         self.bw = info["bw"]
         self.idle = info["idle"]
+        self.bw_idle = self.rate / (self.rate / self.bw + self.idle)
         self.buffer = info["buffer"]
         self.freeze = info["freeze"]
         self.latency = info["latency"]
@@ -103,6 +111,7 @@ class client_info:
         self.rate_his.add(self.rate)
         self.bw_his.add(self.bw)
         self.idle_his.add(self.idle)
+        self.bw_idle_his.add(self.bw_idle)
         self.buffer_his.add(self.buffer)
         self.freeze_his.add(self.freeze)
         self.latency_his.add(self.latency)
@@ -168,6 +177,6 @@ class client_info:
         #             )
         # reward_file.flush()
         
-        return reward + 20
+        return reward + 30
     
     

@@ -33,7 +33,7 @@ META_MODEL_SAVE_INTERVAL = 2000
 
 class hmarl_server(pesudo_server):
     
-    def __init__(self, train=True):
+    def __init__(self, train_local=True, train_meta=True):
         super().__init__()
         
         optimizer_spec = OptimizerSpec(
@@ -42,7 +42,8 @@ class hmarl_server(pesudo_server):
         )
 
         self.agent = hDQN(optimizer_spec)
-        self.train = train
+        self.train_local = train_local
+        self.train_meta = train_meta
         
         self.local_data = 0
         self.meta_data = 0
@@ -105,6 +106,38 @@ class hmarl_server(pesudo_server):
         self.agent.local_count += 1
         return VIDEO_BIT_RATE[action.item()], action
     
+    def server_goal_estimation(self, client:client_info):
+        a = np.array([x.get_smooth_bw_idle() for _, x in self.client_list.items()])
+        b = np.array([x.get_smooth_bw() for _, x in self.client_list.items()])
+        esTotalBW = (a.sum() + b.sum()) / 2
+        
+        target_bw = 0
+        sum_weights = self.sum_weights
+        bottleneck = 0
+        fair_bw = 0
+        print("++++++++++++++")
+        print(a, b, esTotalBW)
+        
+        for _, c in self.client_list.items():
+            bottleneck, std = c.get_bottleneck()
+            weight = c.weight
+            fair_bw =  (weight / sum_weights) * esTotalBW
+            target_bw = min(fair_bw, bottleneck)
+            if c.client_idx == client.client_idx:
+                break
+            sum_weights -= weight
+            esTotalBW -= fair_bw
+
+        print(bottleneck, std + bottleneck, fair_bw)
+        print("++++++++++++++")
+        goal = VIDEO_BIT_RATE[0]
+        for i in reversed(range(len(VIDEO_BIT_RATE))):
+            if VIDEO_BIT_RATE[i] < target_bw:
+                goal = VIDEO_BIT_RATE[i]
+                break
+        
+        return goal
+    
     def pesudo_select_goal(self, client:client_info):
         sample = random.random()
         if client.client_idx == 0:
@@ -152,7 +185,7 @@ class hmarl_server(pesudo_server):
             # Get meta state
             meta_state = self.get_meta_state(client, steps_taken)
             # Push data to meta controller
-            if client.hmarl_step > 0:
+            if self.train_meta and client.hmarl_step > 0:
                 F = client.accumulative_extrinsic_reawad / steps_taken
                 print(f"Client{client.client_idx} gets Reward F: {F}")
                 self.agent.meta_replay_memory.push(client.last_meta_state, client.goal_idx, meta_state, F, False)
@@ -161,18 +194,20 @@ class hmarl_server(pesudo_server):
             client.episode_step = 0
             client.accumulative_extrinsic_reawad = 0
             
-            # Train meta controller
+            
             meta_epsilon = client.meta_controller_epsilon
             client.goal, client.goal_idx = self.select_goal(meta_state, meta_epsilon)
-            self.pesudo_select_goal(client)
-            
+            # select pesudo goal
+            client.goal = self.server_goal_estimation(client)
             Logger.log(f"Client {client.client_idx} gets goal {client.goal} with epsilon {client.meta_controller_epsilon}")
-            if self.train and self.agent.meta_count >= TRAIN_START_META and self.agent.meta_count % TRAIN_INTERVAL == 0:
+            
+            # Train meta controller
+            if self.train_meta and self.agent.meta_count >= TRAIN_START_META and self.agent.meta_count % TRAIN_INTERVAL == 0:
                 Logger.log("Training meta controller...")
                 for t in range(TRAIN_TIMES):
                     self.agent.update_meta_controller()
                 Logger.log("Meta controller training completed")
-            if self.train and self.agent.meta_count >= TRAIN_START_META and self.agent.meta_count % META_MODEL_SAVE_INTERVAL == 0:
+            if self.train_meta and self.agent.meta_count >= TRAIN_START_META and self.agent.meta_count % META_MODEL_SAVE_INTERVAL == 0:
                 Logger.log("Meta controller model saved")
                 self.agent.save_meta_controller_model(self.agent.meta_count)
             self.update_meta_lock.release()
@@ -193,19 +228,20 @@ class hmarl_server(pesudo_server):
         state_goal = client.get_state_goal()
         
         self.update_local_lock.acquire()
-        # Push data to local controller
-        if client.hmarl_step > 1:
-            self.agent.ctrl_replay_memory.push(client.last_state, client.rate_idx, client.get_state_goal(), intrinsic_reward, done)
-        # Train local controller
-        if self.train and self.agent.local_count >= TRAIN_START_LOCAL and self.agent.local_count % TRAIN_INTERVAL == 0:
-            Logger.log("Training local controller...")
-            for t in range(TRAIN_TIMES):
-                self.agent.update_controller()
-            Logger.log("Local controller training completed")
-        # Save controller model
-        if self.train and self.agent.local_count >= TRAIN_START_LOCAL and self.agent.local_count % MODEL_SAVE_INTERVAL == 0:
-            Logger.log("Local controller model saved")
-            self.agent.save_controller_model(self.agent.local_count)
+        if self.train_local:
+            # Push data to local controller
+            if client.hmarl_step > 1:
+                self.agent.ctrl_replay_memory.push(client.last_state, client.rate_idx, client.get_state_goal(), intrinsic_reward, done)
+            # Train local controller
+            if self.agent.local_count >= TRAIN_START_LOCAL and self.agent.local_count % TRAIN_INTERVAL == 0:
+                Logger.log("Training local controller...")
+                for t in range(TRAIN_TIMES):
+                    self.agent.update_controller()
+                Logger.log("Local controller training completed")
+            # Save controller model
+            if self.agent.local_count >= TRAIN_START_LOCAL and self.agent.local_count % MODEL_SAVE_INTERVAL == 0:
+                Logger.log("Local controller model saved")
+                self.agent.save_controller_model(self.agent.local_count)
         # Select new rate
         epsilon = client.controller_epsilon
         client.rate, client.rate_idx = self.select_rate(state_goal, epsilon)

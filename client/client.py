@@ -54,7 +54,7 @@ class Client:
         # self.current_gop = 0
         
         self.buffer = queue.Queue(Config.CLIENT_MAX_BUFFER_LEN)
-        self.rtt = 0.01
+        self.rtt = 0.03
         self.idle = 0
         self.freeze = 0
         self.latency = 3.0
