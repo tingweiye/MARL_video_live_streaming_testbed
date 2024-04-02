@@ -10,23 +10,24 @@ class pesudo_server:
         self.num_agent = 0
         self.sum_weights = 0
         
-        self.meta_lock = threading.Lock()
+        self.update_meta_lock = threading.Lock()
+        self.update_local_lock = threading.Lock()
         
     def add_client(self, idx, weight=1, rate=0, buffer=0, latency=0):
-        self.meta_lock.acquire()
+        self.update_local_lock.acquire()
         info = client_info(idx, weight)
         self.client_list[idx] = info
         self.num_agent += 1
         self.sum_weights += weight
         print(self.sum_weights)
-        self.meta_lock.release()
+        self.update_local_lock.release()
     
     def remove_client(self, idx):
-        self.meta_lock.acquire()
+        self.update_local_lock.acquire()
         self.sum_weights -= self.client_list[idx].weight
         self.client_list.pop(idx)
         self.num_agent -= 1
-        self.meta_lock.release()
+        self.update_local_lock.release()
         
     def update_info(self, idx, info):
         self.client_list[idx].update(info)

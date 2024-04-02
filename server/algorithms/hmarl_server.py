@@ -48,8 +48,6 @@ class hmarl_server(pesudo_server):
         self.local_data = 0
         self.meta_data = 0
         
-        self.update_meta_lock = threading.Lock()
-        self.update_local_lock = threading.Lock()
         
     def get_others_sum_mean_rate(self, client:client_info, steps_taken):
         sum = 0
