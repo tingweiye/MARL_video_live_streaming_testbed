@@ -77,6 +77,7 @@ class MovingQueue:
     def __init__(self, N):
         self.capacity = N
         self.queue = deque(maxlen=N)
+        self.add(0)
         
     def __len__(self):
         return len(self.queue)
