@@ -109,14 +109,14 @@ class hmarl_server(pesudo_server):
     def server_goal_estimation(self, client:client_info):
         a = np.array([x.get_smooth_bw_idle() for _, x in self.client_list.items()])
         b = np.array([x.get_smooth_bw() for _, x in self.client_list.items()])
-        esTotalBW = (a.sum() + b.sum()) / 2
+        esTotalBW = b.sum()
         
         target_bw = 0
         sum_weights = self.sum_weights
         bottleneck = 0
         fair_bw = 0
         print("++++++++++++++")
-        print(a, b, esTotalBW)
+        print(b, esTotalBW)
         
         for _, c in self.client_list.items():
             bottleneck, std = c.get_bottleneck()
