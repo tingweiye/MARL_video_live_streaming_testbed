@@ -88,16 +88,16 @@ class MovingQueue:
         return self.queue[idx]
     
     def sum(self):
-        return sum(self.queue)
+        return sum(self.queue, skipna=True)
     
     def avg(self):
-        return np.mean(self.queue)
+        return np.nanmean(self.queue)
     
     def max(self):
-        return np.max(self.queue)
+        return np.nanmax(self.queue)
     
     def std(self):
-        return np.std(self.queue)
+        return np.nanstd(self.queue)
     
     def get_last_mean(self, idx):
         return np.mean(list(self.queue)[-idx:])
