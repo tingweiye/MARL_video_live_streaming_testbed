@@ -323,7 +323,6 @@ class hDQN():
         loss = F.smooth_l1_loss(current_Q_values, target_Q_values)
 
         # Soft update Q to target Q before updating parameters of Q
-        self.update_controller_parameters()
         # count = 0
         # print()
         # for q_target_params, q_eval_params in zip(self.target_controller.parameters(), self.controller.parameters()):
@@ -332,6 +331,8 @@ class hDQN():
         #         print(q_target_params[-1])
         #         break
         # Optimize the model
+        self.update_controller_parameters()
+        
         self.ctrl_optimizer.zero_grad()
         loss.backward()
         for param in self.controller.parameters():

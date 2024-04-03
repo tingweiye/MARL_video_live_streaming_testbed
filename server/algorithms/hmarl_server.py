@@ -1,5 +1,6 @@
 import random
 import sys
+import time
 import threading
 import torch
 import torch.optim as optim
@@ -19,15 +20,15 @@ MAX_RATE = float(np.max(VIDEO_BIT_RATE))
 MAX_EP_LEN = 10
 TRAIN_START_META = 2000
 TRAIN_START_LOCAL = 3000
-TRAIN_INTERVAL = 50
-TRAIN_TIMES = 50
+TRAIN_INTERVAL = 100
+TRAIN_TIMES = 70
 MODEL_SAVE_INTERVAL = 5000
 META_MODEL_SAVE_INTERVAL = 2000
 # MAX_EP_LEN = 10
 # TRAIN_START_META = 1
 # TRAIN_START_LOCAL = 1
-# TRAIN_INTERVAL = 5
-# TRAIN_TIMES = 5
+# TRAIN_INTERVAL = 15
+# TRAIN_TIMES = 50
 # MODEL_SAVE_INTERVAL = 1
 
 
@@ -48,6 +49,16 @@ class hmarl_server(pesudo_server):
         self.local_data = 0
         self.meta_data = 0
         
+        # a = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+        #               [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+        #               [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+        #               [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+        #               [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
+        # for e in range(500):
+        #     state, next_state = a, a
+        #     action = self.agent.select_action(torch.from_numpy(a).unsqueeze(0).type(dtype), 0.1)
+        #     self.agent.ctrl_replay_memory.push(state, action, next_state, 1, 0)
+        # self.train_local_controller()
         
     def get_others_sum_mean_rate(self, client:client_info, steps_taken):
         sum = 0
@@ -113,8 +124,8 @@ class hmarl_server(pesudo_server):
         sum_weights = self.sum_weights
         bottleneck = 0
         fair_bw = 0
-        print("++++++++++++++")
-        print(b, esTotalBW)
+        # print("++++++++++++++")
+        # print(b, esTotalBW)
         
         for _, c in self.client_list.items():
             bottleneck, std = c.get_bottleneck()
@@ -124,10 +135,10 @@ class hmarl_server(pesudo_server):
             if c.client_idx == client.client_idx:
                 break
             sum_weights -= weight
-            esTotalBW -= fair_bw
+            esTotalBW -= target_bw
 
-        print(bottleneck, std + bottleneck, fair_bw)
-        print("++++++++++++++")
+        # print(bottleneck, std + bottleneck, fair_bw)
+        # print("++++++++++++++")
         goal = VIDEO_BIT_RATE[0]
         for i in reversed(range(len(VIDEO_BIT_RATE))):
             if VIDEO_BIT_RATE[i] < target_bw:
@@ -162,6 +173,22 @@ class hmarl_server(pesudo_server):
             else:
                 client.goal = 4.0
         return client.goal
+    
+    def train_meta_controller(self):
+        if self.train_meta and self.agent.meta_count >= TRAIN_START_META and self.agent.meta_count % TRAIN_INTERVAL == 0:
+            Logger.log("Training meta controller...")
+            for _ in range(TRAIN_TIMES):
+                self.agent.update_meta_controller()
+            Logger.log("Meta controller training completed")
+            
+    def train_local_controller(self):
+        Logger.log("Training local controller...")
+        t1 = time.time()
+        for _ in range(TRAIN_TIMES):
+            self.agent.update_controller()
+        t2 = time.time()
+        print(f"Pass: {t2-t1}")
+        Logger.log("Local controller training completed")
     
     def solve(self, idx):
         client = self.client_list[idx]
@@ -200,11 +227,7 @@ class hmarl_server(pesudo_server):
             Logger.log(f"Client {client.client_idx} gets goal {client.goal} with epsilon {client.meta_controller_epsilon}")
             
             # Train meta controller
-            if self.train_meta and self.agent.meta_count >= TRAIN_START_META and self.agent.meta_count % TRAIN_INTERVAL == 0:
-                Logger.log("Training meta controller...")
-                for t in range(TRAIN_TIMES):
-                    self.agent.update_meta_controller()
-                Logger.log("Meta controller training completed")
+            self.train_meta_controller()
             if self.train_meta and self.agent.meta_count >= TRAIN_START_META and self.agent.meta_count % META_MODEL_SAVE_INTERVAL == 0:
                 Logger.log("Meta controller model saved")
                 self.agent.save_meta_controller_model(self.agent.meta_count)
@@ -232,10 +255,9 @@ class hmarl_server(pesudo_server):
                 self.agent.ctrl_replay_memory.push(client.last_state, client.rate_idx, client.get_state_goal(), intrinsic_reward, done)
             # Train local controller
             if self.agent.local_count >= TRAIN_START_LOCAL and self.agent.local_count % TRAIN_INTERVAL == 0:
-                Logger.log("Training local controller...")
-                for t in range(TRAIN_TIMES):
-                    self.agent.update_controller()
-                Logger.log("Local controller training completed")
+                threading.Thread(target=self.train_local_controller).start()
+            # self.train_local_controller()
+            
             # Save controller model
             if self.agent.local_count >= TRAIN_START_LOCAL and self.agent.local_count % MODEL_SAVE_INTERVAL == 0:
                 Logger.log("Local controller model saved")
