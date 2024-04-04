@@ -49,6 +49,7 @@ class hmarl_server(pesudo_server):
         self.local_data = 0
         self.meta_data = 0
         
+        self.train_local_event = threading.Event()
         # a = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
         #               [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
         #               [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],

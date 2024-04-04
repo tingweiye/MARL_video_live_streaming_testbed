@@ -5,18 +5,22 @@ import time
 import os
 import sys
 import threading
+from multiprocessing import Process, Queue
+from scripts.traffic_shaping_server import regulator
 sys.path.append("..")
 from utils.utils import Logger, delete_files_in_folder
 from utils.config import Config
 
 class Server:
     
-    def __init__(self, algo="PESUDO"):
+    def __init__(self, algo="PESUDO", use_trace=True):
         
         # client info
         self.first_time = True
         self.client_num = 0
-        self.max_client_num = 100     
+        self.max_client_num = 100
+        self.trace_queue = Queue()
+        
         if algo == "MARL":
             self.algo = marl_server()
         elif algo == "HMARL":
@@ -33,6 +37,11 @@ class Server:
         delete_files_in_folder(os.path.join(os.getcwd(), 'data'))
         self.encoder = LiveEncoder()
         self.encoder.start()
+        
+        if use_trace:
+            subprocess_process = Process(target=regulator, args=(self.trace_queue,))
+            subprocess_process.start()
+            Logger.log("Traffic shaper initiated")
         
     def register_client(self, weight):
         if (self.next_idx >= self.max_client_num):
