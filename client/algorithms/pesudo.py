@@ -52,6 +52,7 @@ class pesudo_solver:
                 goal = info["goal"]
                 intrinsic_reward = info["intrinsic_reward"]
                 extrinsic_reward = info["extrinsic_reward"]
+                true_bandwidth = info["true_bandwidth"]
                 
                 time_stamp = server_time
                 last_rate = rate
@@ -70,6 +71,7 @@ class pesudo_solver:
                             str(jump) + '\t' +
                             str(goal) + '\t' +
                             str(intrinsic_reward) + '\t' + 
-                            str(extrinsic_reward) + '\n')
+                            str(extrinsic_reward) + '\t' +
+                            str(true_bandwidth) + '\n')
                 log_file.flush()
 

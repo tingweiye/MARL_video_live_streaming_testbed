@@ -1,15 +1,28 @@
 import subprocess
+import platform
 import time
+from utils.utils import Logger
 
-def regulator(queue):
-    shaper = traffic_shaper()
+
+def regulator(queue, train):
+    shaper = traffic_shaper(queue)
+    if platform.system() == "Linux":
+        if train:
+            Logger.log("Training traffic shaper initiated")
+            shaper.train_shaping()
+        else:
+            Logger.log("Testing traffic shaper initiated")
+            shaper.test_shaping()
+    else:
+        Logger.log("System not Linux, traffic shaper not applicable")
 
 class traffic_shaper:
     
-    def __init__(self):
+    def __init__(self, queue):
         self.train_trace = []
         self.test_trace = []
         
+        self.queue = queue
         self.interface = 'eth1'
         self.duration = 10
         
@@ -34,7 +47,16 @@ class traffic_shaper:
             for r in self.train_trace:
                 rate = str(r) + 'Mbit'
                 self.set_bandwidth(self.interface, rate)
+                self.queue.put(r)
                 time.sleep(self.duration)
+        subprocess.call(['sudo', 'tc', 'qdisc', 'del', 'dev', self.interface, 'root'])
+        
+    def test_shaping(self):
+        for r in self.test_trace:
+            rate = str(r) + 'Mbit'
+            self.set_bandwidth(self.interface, rate)
+            self.queue.put(r)
+            time.sleep(self.duration)
         subprocess.call(['sudo', 'tc', 'qdisc', 'del', 'dev', self.interface, 'root'])
         
 

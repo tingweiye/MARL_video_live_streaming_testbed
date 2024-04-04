@@ -68,6 +68,7 @@ async def download_video(request, video_filename):
         
     # print(server.check_pred(server_time))
     suggestion, video_filename, prepare = server.process_request(client_idx, request_gop, request_rate)
+    true_bandwidth = server.get_true_bandwidth()
     
     video_path = os.path.join(os.getcwd(), "data/"+video_filename)
     # t2 = time.time()
@@ -85,6 +86,7 @@ async def download_video(request, video_filename):
         response['Prepare-Time'] = prepare
         response['Suggestion'] = suggestion
         response['Rate'] = request_rate
+        response['True-Bw'] = true_bandwidth
         if algo == "MARL":
             instruction, fair_bw, reward = server.marl_solve(client_idx)
             response['Instruction'] = instruction

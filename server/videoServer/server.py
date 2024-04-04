@@ -13,12 +13,14 @@ from utils.config import Config
 
 class Server:
     
-    def __init__(self, algo="PESUDO", use_trace=True):
+    def __init__(self, algo="PESUDO", use_trace=True, is_train=True):
         
         # client info
         self.first_time = True
         self.client_num = 0
         self.max_client_num = 100
+        self.true_bandwidth = 0
+        self.true_bandwidth_lock = threading.Lock()
         self.trace_queue = Queue()
         
         if algo == "MARL":
@@ -39,9 +41,17 @@ class Server:
         self.encoder.start()
         
         if use_trace:
-            subprocess_process = Process(target=regulator, args=(self.trace_queue,))
+            subprocess_process = Process(target=regulator, args=(self.trace_queue,is_train,))
             subprocess_process.start()
-            Logger.log("Traffic shaper initiated")
+            
+    def get_true_bandwidth(self):
+        if self.trace_queue.empty():
+            return self.true_bandwidth
+        else:
+            self.true_bandwidth_lock.acquire()
+            while not self.trace_queue.empty():
+                self.true_bandwidth = self.trace_queue.get()
+            return self.true_bandwidth
         
     def register_client(self, weight):
         if (self.next_idx >= self.max_client_num):

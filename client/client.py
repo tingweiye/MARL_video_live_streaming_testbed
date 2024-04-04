@@ -62,6 +62,7 @@ class Client:
         self.bw = 0 # in Mb/s
         self.jump_seconds = 0
         self.seg_left = 0
+        self.true_bandwidth = 0
         
         self.buffer_his = [0]
         self.rtt_his = [0]
@@ -73,6 +74,7 @@ class Client:
         self.bw_his = [1]
         self.jump_his = [0]
         self.server_time_his = [0]
+        self.true_bandwidth_his = [0]
         
         self.path = os.path.join(os.getcwd(), "data")
         self.test = time.time()
@@ -145,7 +147,7 @@ class Client:
                 self.buffer_not_full.wait()
             # push to buffer
             self.buffer.put(download_seg_info(self.last_gop, Config.INITIAL_RATE))
-            print(f"Buffer: {self.get_buffer_size():.3f}, Latency: {self.latency:.3f}, idle: {self.idle:.3f}, Freeze: {self.freeze:.3f}, Download time: {self.download_time:.3f}, BW: {self.bw:.3f}")
+            Logger.log(f"Buffer: {self.get_buffer_size():.3f}, Latency: {self.latency:.3f}, idle: {self.idle:.3f}, Freeze: {self.freeze:.3f}, Download time: {self.download_time:.3f}, BW: {self.bw:.3f} Mbits, TBW {self.true_bandwidth:.2f} Mbits")
             self.buffer_not_empty.set()
             
     """
@@ -277,6 +279,7 @@ class Client:
             suggestion = int(response.headers.get('Suggestion'))
             prepare = float(response.headers.get('Prepare-Time'))
             download_rate = float(response.headers.get('Rate'))
+            true_bandwidth = float(response.headers.get('True-Bw'))
             
             if self.algo == "MARL":
                 instruction = float(response.headers.get('Instruction'))
@@ -290,6 +293,7 @@ class Client:
             passive_jump = suggestion - self.next_gop - 1
             self.last_gop = suggestion - 1
             self.next_gop = suggestion
+            self.true_bandwidth = true_bandwidth
             
             filename = f'{self.next_gop}_{download_rate:.1f}.mp4'
             download_filename = 'd_' + filename  # Replace with the desired local filename
@@ -308,7 +312,8 @@ class Client:
                     "download_rate":download_rate, 
                     "goal":goal,
                     "intrinsic_reward":intrinsic_reward, 
-                    "extrinsic_reward":extrinsic_reward}
+                    "extrinsic_reward":extrinsic_reward,
+                    "true_bandwidth": true_bandwidth}
             # return suggestion, prepare, passive_jump, server_time, instruction, fair_bw, exReward, download_rate, intrinsic_reward, extrinsic_reward
             return info
         except:
@@ -336,6 +341,7 @@ class Client:
         goal = info["goal"]
         intrinsic_reward = info["intrinsic_reward"]
         extrinsic_reward = info["extrinsic_reward"]
+        true_bandwidth = info["true_bandwidth"]
         # print(download_rate)
         download_end = time.time()
         self.download_time = download_end - download_start - prepare ######## important!!!!!!
@@ -399,28 +405,14 @@ class Client:
             "goal":goal,
             "download_rate":download_rate,
             "intrinsic_reward":intrinsic_reward, 
-            "extrinsic_reward":extrinsic_reward
+            "extrinsic_reward":extrinsic_reward,
+            "true_bandwidth": true_bandwidth
         }
-        
-        # return self.latency_his[-1], \
-        #         self.idle_his[-1], \
-        #         self.buffer_his[-1], \
-        #         self.freeze_his[-1], \
-        #         self.download_time_his[-1], \
-        #         self.bw_his[-1], \
-        #         passive_jump, \
-        #         self.server_time_his[-1], \
-        #         instruction, \
-        #         fair_bw, \
-        #         exReward, \
-        #         download_rate, \
-        #         intrinsic_reward, \
-        #         extrinsic_reward
         return return_info
         
     def update_data(self):
         
-        Logger.log(f"Buffer: {self.get_buffer_size():.3f}, Latency: {self.latency:.3f}, idle: {self.idle:.3f}, Freeze: {self.freeze:.3f}, Download time: {self.download_time:.3f}, BW: {self.bw:.3f}")
+        Logger.log(f"Buffer: {self.get_buffer_size():.3f}, Latency: {self.latency:.3f}, idle: {self.idle:.3f}, Freeze: {self.freeze:.3f}, Download time: {self.download_time:.3f}, BW: {self.bw:.3f} Mbits, TBW {self.true_bandwidth:.2f} Mbits")
         self.buffer_his.append(self.get_buffer_size())
         # self.rtt_his = [] #TODO
         self.idle_his.append(self.idle)
