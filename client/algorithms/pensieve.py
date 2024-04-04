@@ -17,17 +17,19 @@ CRITIC_LR_RATE = 0.001
 NUM_AGENTS = 1
 TRAIN_SEQ_LEN = 100  # take as a train batch
 UPDATE_INTERVAL = 100
-MODEL_SAVE_INTERVAL = 100
+MODEL_SAVE_INTERVAL = 2000
 VIDEO_BIT_RATE = Config.BITRATE  # Kbps
 HD_REWARD = [1, 2, 3, 12, 15, 20]
 BUFFER_NORM_FACTOR = Config.CLIENT_MAX_BUFFER_LEN + 1
 CHUNK_TIL_VIDEO_END_CAP = 48.0
 M_IN_K = 1000.0
-QUALTITY_COEF = 3
-FREEZE_PENALTY = 30
-LATENCY_PENALTY = 0.5
+
+QUALTITY_COEF = 5
+FREEZE_PENALTY = 50
+LATENCY_PENALTY = 1
 JUMP_PENALTY = 2
-SMOOTH_PENALTY = 3
+SMOOTH_PENALTY = 5
+
 DEFAULT_QUALITY = Config.INITIAL_RATE  # default video quality without agent
 RANDOM_SEED = 42
 RAND_RANGE = 1000
@@ -58,7 +60,7 @@ class pensieve_solver:
         logging.basicConfig(filename=PENSIEVE_LOG_FILE + '_central',
                         filemode='w',
                         level=logging.INFO)
-    
+        print("Hello!!!!!!")
         with open(PENSIEVE_LOG_FILE + '_record', 'w') as log_file, open(PENSIEVE_LOG_FILE + '_test', 'w') as test_log_file:
 
             model_actor = ac.Actor(A_DIM).type(dtype)
@@ -91,8 +93,8 @@ class pensieve_solver:
             time_stamp = 0
 
             exploration_size = 8
-            episode_steps = 32 ############ testing!!!!!!
-            update_num = 1
+            episode_steps = 64 ############ testing!!!!!!
+            update_num = 30
             batch_size = 64
             gamma = 0.99
             gae_param = 0.95
@@ -125,8 +127,16 @@ class pensieve_solver:
 
                         actions.append(torch.tensor([action]))
                         states.append(state.unsqueeze(0))
+                        info = self.client.download(rate, "PENSIEVE")
 
-                        latency, idle, buffer_size, freeze, download_time, bw, jump, server_time, _, _ = self.client.download(rate, "PENSIEVE")
+                        latency = info["latency"]
+                        idle = info["idle"]
+                        buffer_size = info["buffer_size"]
+                        freeze = info["freeze"]
+                        download_time = info["download_time"]
+                        bw = info["bw"]
+                        jump = info["jump"]
+                        server_time = info["server_time"]
                         
                         time_stamp = server_time
 

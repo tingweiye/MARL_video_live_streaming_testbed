@@ -272,6 +272,7 @@ class Client:
             response.raise_for_status()
             download_rate, instruction, exReward, fair_bw = rate, -1, -1, -1
             intrinsic_reward, extrinsic_reward = -1, -1
+            goal = 2.5
             
             # Read and save the downloaded content to a local file
             # Get server time and calculate
