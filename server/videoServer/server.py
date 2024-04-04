@@ -51,6 +51,7 @@ class Server:
             self.true_bandwidth_lock.acquire()
             while not self.trace_queue.empty():
                 self.true_bandwidth = self.trace_queue.get()
+            self.true_bandwidth_lock.release()
             return self.true_bandwidth
         
     def register_client(self, weight):
