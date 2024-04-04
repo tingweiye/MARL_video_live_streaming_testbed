@@ -1,6 +1,7 @@
 import subprocess
 import platform
 import time
+import random
 from utils.utils import Logger
 
 
@@ -32,6 +33,15 @@ class traffic_shaper:
     def set_bandwidth(self, interface, rate):
         subprocess.call(['sudo', 'tc', 'qdisc', 'replace', 'dev', interface, 'root', 'tbf', 'rate', rate, 'burst', '32kbit', 'latency', '30ms'])
         
+    def get_random_duration(self):
+        sample = random.random()
+        if sample < 0.1:
+            return 8
+        elif sample < 0.2:
+            return 12
+        else:
+            return 10
+        
     def read_train_trace(self, file_path):
         with open(file_path, "r") as file:
             numbers_text = file.readlines()
@@ -49,7 +59,7 @@ class traffic_shaper:
                 self.set_bandwidth(self.interface, rate)
                 Logger.log(f"Bandwitdh set to {rate}")
                 self.queue.put(r)
-                time.sleep(self.duration)
+                time.sleep(self.get_random_duration())
         subprocess.call(['sudo', 'tc', 'qdisc', 'del', 'dev', self.interface, 'root'])
         
     def test_shaping(self):
@@ -57,7 +67,7 @@ class traffic_shaper:
             rate = str(r) + 'Mbit'
             self.set_bandwidth(self.interface, rate)
             self.queue.put(r)
-            time.sleep(self.duration)
+            time.sleep(self.get_random_duration())
         subprocess.call(['sudo', 'tc', 'qdisc', 'del', 'dev', self.interface, 'root'])
         
 
