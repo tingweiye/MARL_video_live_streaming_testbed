@@ -120,6 +120,7 @@ class hmarl_server(pesudo_server):
         a = np.array([x.get_smooth_bw_idle() for _, x in self.client_list.items()])
         b = np.array([x.get_smooth_bw() for _, x in self.client_list.items()])
         esTotalBW = b.sum()
+        print(f"ESTotalBW: {esTotalBW}")
         
         target_bw = 0
         sum_weights = self.sum_weights

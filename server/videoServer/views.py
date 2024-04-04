@@ -64,7 +64,7 @@ async def download_video(request, video_filename):
     # HMARL rate selection
     if algo == "HMARL":
         request_rate, goal, intrinsic_reward, extrinsic_reward = server.hmarl_solve(client_idx)
-    print(request_rate, goal, intrinsic_reward, extrinsic_reward)
+    # print(request_rate, goal, intrinsic_reward, extrinsic_reward)
         
     # print(server.check_pred(server_time))
     suggestion, video_filename, prepare = server.process_request(client_idx, request_gop, request_rate)
