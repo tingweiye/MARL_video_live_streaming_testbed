@@ -47,6 +47,7 @@ class traffic_shaper:
             for r in self.train_trace:
                 rate = str(r) + 'Mbit'
                 self.set_bandwidth(self.interface, rate)
+                Logger.log(f"Bandwitdh set to {rate}")
                 self.queue.put(r)
                 time.sleep(self.duration)
         subprocess.call(['sudo', 'tc', 'qdisc', 'del', 'dev', self.interface, 'root'])
