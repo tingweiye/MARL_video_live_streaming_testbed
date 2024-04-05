@@ -9,6 +9,7 @@ S_META = 4
 S_LEN = 10
 VIDEO_BIT_RATE = Config.BITRATE  # Kbps
 MAX_RATE = float(np.max(VIDEO_BIT_RATE))
+NUM_ACTIONS = len(VIDEO_BIT_RATE)
 INITIAL_RATE = VIDEO_BIT_RATE[int(len(VIDEO_BIT_RATE) // 2)]
 
 MAX_EPSILON_C = 0.9
@@ -154,21 +155,21 @@ class client_info:
         log_last_rate = np.log(self.last_rate)
         
         reward  = QUALTITY_COEF  * log_rate \
-                - FREEZE_PENALTY * max(0.75, self.freeze) \
+                - FREEZE_PENALTY * max(0.75, self.freeze) if self.freeze > 0.0001 else 0 \
                 - LATENCY_PENALTY* self.latency \
                 - JUMP_PENALTY   * self.jump \
                 - SMOOTH_PENALTY * np.abs(log_rate - log_last_rate)
         # print(QUALTITY_COEF*log_rate, FREEZE_PENALTY * max(0.5, self.freeze))
                 
         if self.goal_reached():
-            reward += 20
+            reward += 10
         elif self.goal < self.rate:
             reward -= QUALTITY_COEF * (log_rate - log_goal)
         else:
             reward += QUALTITY_COEF * log_rate
                                        
         if steps_taken >= 5: # If not following goal and causes freeze, give pentalty
-            reward -= QOE_FREEZE_PENALTY * max(0.75, self.freeze)
+            reward -= QOE_FREEZE_PENALTY * max(0.75, self.freeze) if self.freeze > 0.0001 else 0
 
         # reward_file.write(str(reward_self) + '\t' +
         #             str(fair_coef) + '\t' +
@@ -177,6 +178,6 @@ class client_info:
         #             )
         # reward_file.flush()
         
-        return reward + 30
+        return reward + 10
     
     
