@@ -16,8 +16,7 @@ ACTOR_LR_RATE = 0.0001
 CRITIC_LR_RATE = 0.001
 NUM_AGENTS = 1
 TRAIN_SEQ_LEN = 100  # take as a train batch
-UPDATE_INTERVAL = 100
-MODEL_SAVE_INTERVAL = 2000
+MODEL_SAVE_INTERVAL = 20
 VIDEO_BIT_RATE = Config.BITRATE  # Kbps
 HD_REWARD = [1, 2, 3, 12, 15, 20]
 BUFFER_NORM_FACTOR = Config.CLIENT_MAX_BUFFER_LEN + 1
@@ -28,7 +27,7 @@ QUALTITY_COEF = 5
 FREEZE_PENALTY = 50
 LATENCY_PENALTY = 1
 JUMP_PENALTY = 2
-SMOOTH_PENALTY = 5
+SMOOTH_PENALTY = 8
 
 DEFAULT_QUALITY = Config.INITIAL_RATE  # default video quality without agent
 RANDOM_SEED = 42
@@ -92,11 +91,11 @@ class pensieve_solver:
             epoch = 0
             time_stamp = 0
 
-            exploration_size = 8
-            episode_steps = 64 ############ testing!!!!!!
-            update_num = 30
+            exploration_size = 5
+            episode_steps = 50 
+            update_num = 50
             batch_size = 64
-            gamma = 0.99
+            gamma = 0.95
             gae_param = 0.95
             clip = 0.2
             ent_coeff = 0.98
@@ -137,6 +136,7 @@ class pensieve_solver:
                         bw = info["bw"]
                         jump = info["jump"]
                         server_time = info["server_time"]
+                        true_bandwidth = info["true_bandwidth"]
                         
                         time_stamp = server_time
 
@@ -145,7 +145,7 @@ class pensieve_solver:
                         log_last_rate = np.log(last_rate)
 
                         reward =  QUALTITY_COEF  * log_rate \
-                                - FREEZE_PENALTY * freeze \
+                                - FREEZE_PENALTY * max(0.75, freeze) if freeze > 0.001 else 0 \
                                 - LATENCY_PENALTY* latency \
                                 - JUMP_PENALTY   * jump \
                                 - SMOOTH_PENALTY * np.abs(log_rate - log_last_rate) 
@@ -164,7 +164,7 @@ class pensieve_solver:
 
                         # this should be S_INFO number of terms
                         state[0, -1] = rate / float(np.max(VIDEO_BIT_RATE))  # last quality
-                        state[1, -1] = float(bw)
+                        state[1, -1] = float(np.mean(self.client.bw_his[-10:])) / 10
                         state[2, -1] = float(download_time)
                         state[3, -1] = float(latency) / BUFFER_NORM_FACTOR
                         state[4, -1] = float(freeze)  # mega byte
@@ -182,7 +182,8 @@ class pensieve_solver:
                                     str(idle) + '\t' +
                                     str(latency) + '\t' +
                                     str(jump) + '\t' +
-                                    str(reward) + '\n')
+                                    str(reward) + '\t' +
+                                    str(true_bandwidth) + '\n')
                         log_file.flush()
 
                     # one last step
@@ -272,7 +273,7 @@ class pensieve_solver:
                                 ' Avg_entropy_loss: ' + str(A_DIM * loss_ent.detach().cpu().numpy()) +
                                 ' Avg_throughput: ' + str(total_bw / (episode_steps * exploration_size)))
 
-                    if epoch % UPDATE_INTERVAL == 0:
+                    if epoch % MODEL_SAVE_INTERVAL == 0:
                         logging.info("Model saved in file")
                         add_str = 'ppo'
                         actor_model_save_path = "./models/pensieve/%s_%s_%d_actor.model" %(str('abr'), add_str, int(epoch))

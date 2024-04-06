@@ -155,7 +155,7 @@ class client_info:
         log_last_rate = np.log(self.last_rate)
         
         reward  = QUALTITY_COEF  * log_rate \
-                - FREEZE_PENALTY * max(0.75, self.freeze) if self.freeze > 0.0001 else 0 \
+                - FREEZE_PENALTY * max(0.75, self.freeze) if self.freeze > 0.001 else 0 \
                 - LATENCY_PENALTY* self.latency \
                 - JUMP_PENALTY   * self.jump \
                 - SMOOTH_PENALTY * np.abs(log_rate - log_last_rate)
@@ -169,7 +169,7 @@ class client_info:
             reward += QUALTITY_COEF * log_rate
                                        
         if steps_taken >= 5: # If not following goal and causes freeze, give pentalty
-            reward -= QOE_FREEZE_PENALTY * max(0.75, self.freeze) if self.freeze > 0.0001 else 0
+            reward -= QOE_FREEZE_PENALTY * max(0.75, self.freeze) if self.freeze > 0.001 else 0
 
         # reward_file.write(str(reward_self) + '\t' +
         #             str(fair_coef) + '\t' +

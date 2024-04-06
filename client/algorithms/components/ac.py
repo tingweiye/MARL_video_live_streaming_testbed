@@ -15,7 +15,7 @@ class Actor(torch.nn.Module):
         channel_cnn = 128 
         channel_fc = 128
 
-        self.bn = nn.BatchNorm1d(self.input_channel)
+        # self.bn = nn.BatchNorm1d(self.input_channel)
 
         self.actor_conv1 = nn.Conv1d(self.input_channel, channel_cnn, 4) # rate
         self.actor_conv2 = nn.Conv1d(self.input_channel, channel_cnn, 4) # bw
@@ -28,24 +28,24 @@ class Actor(torch.nn.Module):
         #===================Hide layer=========================
         incoming_size = 3*channel_cnn*5 + 4 * channel_fc  #+ 1 * channel_cnn*3
 
-        self.fc1 = nn.Linear(in_features=incoming_size, out_features= channel_fc)
+        self.fc1 = nn.Linear(in_features=incoming_size, out_features=256)
         # self.fc2 = nn.Linear(in_features=channel_fc, out_features=channel_fc)
-        self.fc3 = nn.Linear(in_features=channel_fc, out_features=self.action_space)
+        self.fc3 = nn.Linear(in_features=256, out_features=self.action_space)
         # self.fc4 = nn.Linear(in_features=channel_fc, out_features=1)
 
     def forward(self, inputs):
-        rates_batch = inputs[:, 0:1, :] ## refer to env_train.py
-        rates_batch = self.bn(rates_batch)
+        # rates_batch = inputs[:, 0:1, :] ## refer to env_train.py
+        # rates_batch = self.bn(rates_batch)
         
-        bandwitdh_batch = inputs[:, 1:2, :]
-        bandwitdh_batch = self.bn(bandwitdh_batch)
+        # bandwitdh_batch = inputs[:, 1:2, :]
+        # bandwitdh_batch = self.bn(bandwitdh_batch)
 
-        download_time_batch = inputs[:, 2:3, :]
-        download_time_batch = self.bn(download_time_batch)
+        # download_time_batch = inputs[:, 2:3, :]
+        # download_time_batch = self.bn(download_time_batch)
 
-        x_1 = F.relu(self.actor_conv1(rates_batch))
-        x_2 = F.relu(self.actor_conv2(bandwitdh_batch))
-        x_3 = F.relu(self.actor_conv3(download_time_batch))
+        x_1 = F.relu(self.actor_conv1(inputs[:, 0:1, :]))
+        x_2 = F.relu(self.actor_conv2(inputs[:, 1:2, :]))
+        x_3 = F.relu(self.actor_conv3(inputs[:, 2:3, :]))
         x_4 = F.relu(self.actor_fc_1(inputs[:, 3:4, -1]))
         x_5 = F.relu(self.actor_fc_2(inputs[:, 4:5, -1]))
         x_6 = F.relu(self.actor_fc_3(inputs[:, 5:6, -1]))
@@ -82,7 +82,7 @@ class Critic(torch.nn.Module):
         channel_cnn = 128 
         channel_fc = 128
 
-        self.bn = nn.BatchNorm1d(self.input_channel)
+        # self.bn = nn.BatchNorm1d(self.input_channel)
 
         self.actor_conv1 = nn.Conv1d(self.input_channel, channel_cnn, 4) # rate
         self.actor_conv2 = nn.Conv1d(self.input_channel, channel_cnn, 4) # bw
@@ -95,23 +95,23 @@ class Critic(torch.nn.Module):
         #===================Hide layer=========================
         incoming_size = 3*channel_cnn*5 + 4 * channel_fc  #+ 1 * channel_cnn*3
 
-        self.fc1 = nn.Linear(in_features=incoming_size, out_features= channel_fc)
+        self.fc1 = nn.Linear(in_features=incoming_size, out_features=256)
         # self.fc2 = nn.Linear(in_features=channel_fc, out_features=channel_fc)
-        self.fc3 = nn.Linear(in_features=channel_fc, out_features=1)
+        self.fc3 = nn.Linear(in_features=256, out_features=1)
 
     def forward(self, inputs):
-        rates_batch = inputs[:, 0:1, :] ## refer to env_train.py
-        rates_batch = self.bn(rates_batch)
+        # rates_batch = inputs[:, 0:1, :] ## refer to env_train.py
+        # rates_batch = self.bn(rates_batch)
         
-        bandwitdh_batch = inputs[:, 1:2, :]
-        bandwitdh_batch = self.bn(bandwitdh_batch)
+        # bandwitdh_batch = inputs[:, 1:2, :]
+        # bandwitdh_batch = self.bn(bandwitdh_batch)
 
-        download_time_batch = inputs[:, 2:3, :]
-        download_time_batch = self.bn(download_time_batch)
+        # download_time_batch = inputs[:, 2:3, :]
+        # download_time_batch = self.bn(download_time_batch)
 
-        x_1 = F.relu(self.actor_conv1(rates_batch))
-        x_2 = F.relu(self.actor_conv2(bandwitdh_batch))
-        x_3 = F.relu(self.actor_conv3(download_time_batch))
+        x_1 = F.relu(self.actor_conv1(inputs[:, 0:1, :]))
+        x_2 = F.relu(self.actor_conv2(inputs[:, 1:2, :]))
+        x_3 = F.relu(self.actor_conv3(inputs[:, 2:3, :]))
         x_4 = F.relu(self.actor_fc_1(inputs[:, 3:4, -1]))
         x_5 = F.relu(self.actor_fc_2(inputs[:, 4:5, -1]))
         x_6 = F.relu(self.actor_fc_3(inputs[:, 5:6, -1]))

@@ -67,7 +67,7 @@ class traffic_shaper:
             rate = str(r) + 'Mbit'
             self.set_bandwidth(self.interface, rate)
             self.queue.put(r)
-            time.sleep(self.get_random_duration())
+            time.sleep(self.duration)
         subprocess.call(['sudo', 'tc', 'qdisc', 'del', 'dev', self.interface, 'root'])
         
 
