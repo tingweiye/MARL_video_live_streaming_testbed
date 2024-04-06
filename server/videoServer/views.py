@@ -19,7 +19,7 @@ from utils.config import Config
 
 # Server initialization
 # server = apps.get_app_config('videoServer').server
-server = Server("PENSIEVE")
+server = Server("HMARL")
 shared_data_lock = threading.Lock()
 shared_register_lock = threading.Lock()
 

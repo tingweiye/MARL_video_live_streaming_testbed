@@ -27,7 +27,7 @@ class traffic_shaper:
         self.interface = 'eth1'
         self.duration = 10
         
-        self.read_train_trace('data/traces/50ms_loss0.5_train_1_all.txt')
+        self.read_train_trace('data/traces/50ms_loss0.5_train_all.txt')
         self.read_test_trace('data/traces/50ms_loss0.5_test_0.txt')
     
     def set_bandwidth(self, interface, rate):
