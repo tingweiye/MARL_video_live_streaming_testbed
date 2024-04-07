@@ -27,7 +27,7 @@ QUALTITY_COEF = 5
 FREEZE_PENALTY = 50
 LATENCY_PENALTY = 1
 JUMP_PENALTY = 2
-SMOOTH_PENALTY = 8
+SMOOTH_PENALTY = 12
 
 DEFAULT_QUALITY = Config.INITIAL_RATE  # default video quality without agent
 RANDOM_SEED = 42
@@ -80,7 +80,7 @@ class pensieve_solver:
             # action_vec = np.zeros(A_DIM)
             # action_vec[rate] = 1
             state[0, -1] = rate / float(np.max(VIDEO_BIT_RATE))  # last quality
-            state[1, -1] = float(self.client.bw)
+            state[1, -1] = float(self.client.bw) / 10
             state[2, -1] = float(self.client.download_time)
             state[3, -1] = float(self.client.latency) / BUFFER_NORM_FACTOR
             state[4, -1] = float(self.client.freeze)  # mega byte
