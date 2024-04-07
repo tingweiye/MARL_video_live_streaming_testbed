@@ -21,7 +21,7 @@ QUALTITY_COEF = 5
 FREEZE_PENALTY = 50
 LATENCY_PENALTY = 1
 JUMP_PENALTY = 3
-SMOOTH_PENALTY = 8
+SMOOTH_PENALTY = 10
 
 QOE_QUALTITY_COEF = 10
 QOE_FREEZE_PENALTY = 25
@@ -59,13 +59,13 @@ class client_info:
         self.last_state = np.zeros((S_INFO,S_LEN))
         self.last_meta_state = np.zeros((1, S_META))
         
-        self.reach_reward = {2.5:30,
+        self.reach_reward = {2.5:35,
                              3.0:30,
-                             4.0:20,
-                             5.0:20,
-                             6.5:20,
-                             8.0:15,
-                             10.0:10}
+                             4.0:30,
+                             5.0:25,
+                             6.5:25,
+                             8.0:20,
+                             10.0:20}
         
     def getLen(self):
         return len(self.rate_his)
@@ -187,6 +187,6 @@ class client_info:
         #             )
         # reward_file.flush()
         
-        return reward + 10
+        return reward
     
     
