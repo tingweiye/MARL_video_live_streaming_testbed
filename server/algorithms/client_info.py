@@ -21,7 +21,7 @@ QUALTITY_COEF = 5
 FREEZE_PENALTY = 50
 LATENCY_PENALTY = 1
 JUMP_PENALTY = 3
-SMOOTH_PENALTY = 10
+SMOOTH_PENALTY = 8
 
 QOE_QUALTITY_COEF = 10
 QOE_FREEZE_PENALTY = 25
@@ -64,7 +64,7 @@ class client_info:
                              4.0:30,
                              5.0:25,
                              6.5:25,
-                             8.0:20,
+                             8.0:25,
                              10.0:20}
         
     def getLen(self):
@@ -171,7 +171,7 @@ class client_info:
                 
         if self.goal_reached():
             reward += self.reach_reward[self.goal]
-            print(f"+++++++++get reward {self.reach_reward[self.goal]}++++++++++")
+            # print(f"+++++++++get reward {self.reach_reward[self.goal]}++++++++++")
         elif self.goal < self.rate:
             reward -= QUALTITY_COEF * (log_rate - log_goal)
         else:
