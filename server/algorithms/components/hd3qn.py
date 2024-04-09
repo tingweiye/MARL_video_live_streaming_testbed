@@ -242,10 +242,8 @@ class hDQN():
         model_save_path = "./models/hmarl/meta/%s_%s_%d_meta.model" %(str('abr'), add_str, int(epoch))
         self.meta_controller.save_checkpoint(model_save_path)
         
-    def load_controller_model(self, epoch):
-        add_str = 'dqn'
-        model_load_path = "./models/hmarl/local/%s_%s_%d_ctrl.model" %(str('abr'), add_str, int(epoch))
-        self.controller.load_checkpoint(model_load_path)
+    def load_controller_model(self, file_path):
+        self.controller.load_checkpoint(file_path)
         
     def load_meta_controller_model(self, epoch):
         add_str = 'dqn'

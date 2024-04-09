@@ -19,7 +19,7 @@ from utils.config import Config
 
 # Server initialization
 # server = apps.get_app_config('videoServer').server
-server = Server("HMARL")
+server = Server("HMARL", is_train=False)
 shared_data_lock = threading.Lock()
 shared_register_lock = threading.Lock()
 
@@ -64,8 +64,10 @@ async def download_video(request, video_filename):
     # HMARL rate selection
     if algo == "HMARL":
         request_rate, goal, intrinsic_reward, extrinsic_reward = server.hmarl_solve(client_idx)
-    # print(request_rate, goal, intrinsic_reward, extrinsic_reward)
-        
+    
+    propotional_fairness = server.get_propotional_fairness()
+    maxmin_fairness = server.get_maxmin_fairness()
+    client_qoe = server.get_client_qoe(client_idx)        
     # print(server.check_pred(server_time))
     suggestion, video_filename, prepare = server.process_request(client_idx, request_gop, request_rate)
     true_bandwidth = server.get_true_bandwidth()
@@ -87,6 +89,10 @@ async def download_video(request, video_filename):
         response['Suggestion'] = suggestion
         response['Rate'] = request_rate
         response['True-Bw'] = true_bandwidth
+        # fairness
+        response['PFair'] = propotional_fairness
+        response['MFair'] = maxmin_fairness
+        response['Qoe'] = client_qoe
         if algo == "MARL":
             instruction, fair_bw, reward = server.marl_solve(client_idx)
             response['Instruction'] = instruction

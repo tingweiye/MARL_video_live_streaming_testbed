@@ -53,6 +53,9 @@ class pesudo_solver:
                 intrinsic_reward = info["intrinsic_reward"]
                 extrinsic_reward = info["extrinsic_reward"]
                 true_bandwidth = info["true_bandwidth"]
+                propotional_fairness = info["propotional_fairness"]
+                maxmin_fairness = info["maxmin_fairness"]
+                client_qoe = info["client_qoe"]
                 
                 time_stamp = server_time
                 last_rate = rate
@@ -72,6 +75,12 @@ class pesudo_solver:
                             str(goal) + '\t' +
                             str(intrinsic_reward) + '\t' + 
                             str(extrinsic_reward) + '\t' +
-                            str(true_bandwidth) + '\n')
+                            str(true_bandwidth) + '\t' +
+                            str(propotional_fairness) + '\t' +
+                            str(maxmin_fairness) + '\t' +
+                            str(client_qoe) + '\n')
                 log_file.flush()
+                
+                if true_bandwidth < 0:
+                    return
 

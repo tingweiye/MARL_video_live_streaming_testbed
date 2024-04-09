@@ -17,6 +17,8 @@ dtype = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTens
 VIDEO_BIT_RATE = Config.BITRATE  # Kbps
 MAX_RATE = float(np.max(VIDEO_BIT_RATE))
 
+MODEL_PATH = 'models/hmarl/local/ddqn_test_0.model'
+
 MAX_EP_LEN = 10
 TRAIN_START_META = 2000
 TRAIN_START_LOCAL = 3000
@@ -50,16 +52,13 @@ class hmarl_server(pesudo_server):
         self.meta_data = 0
         
         self.train_local_event = threading.Event()
-        # a = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-        #               [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-        #               [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-        #               [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-        #               [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
-        # for e in range(500):
-        #     state, next_state = a, a
-        #     action = self.agent.select_action(torch.from_numpy(a).unsqueeze(0).type(dtype), 0.1)
-        #     self.agent.ctrl_replay_memory.push(state, action, next_state, 1, 0)
-        # self.train_local_controller()
+        
+        if not train_local:
+            self.load_model_local(MODEL_PATH)
+    
+    def load_model_local(self, file_path):
+        self.agent.load_controller_model(file_path)
+        Logger.log("Local controller model loaded")
         
     def get_others_sum_mean_rate(self, client:client_info, steps_taken):
         sum = 0
@@ -86,26 +85,6 @@ class hmarl_server(pesudo_server):
     def get_extrinsic_reward(self, client:client_info):
         return self.get_propotional_fairness()
     
-    def get_propotional_fairness(self):
-        fairness = 0
-        # li = []
-        for _, client in self.client_list.items():
-            qoe = client.get_qoe()
-            weight = client.weight
-            fairness += weight * np.log(max(qoe, 1))
-            # li.append(qoe)
-        # print(li)
-        # print(fairness)
-        return fairness
-    
-    def get_maxmin_fairness(self):
-        fairness = 10000
-        for _, client in self.client_list.items():
-            qoe = client.get_qoe()
-            weight = client.weight
-            fairness = min(qoe / weight, fairness)
-        return fairness
-    
     def select_goal(self, meta_state, epsilon):
         goal = self.agent.select_goal(torch.from_numpy(meta_state).unsqueeze(0).type(dtype), epsilon)
         self.agent.meta_count += 1
@@ -128,7 +107,7 @@ class hmarl_server(pesudo_server):
         fair_bw = 0
         # print("++++++++++++++")
         # print(b, esTotalBW)
-        
+        # t1 = time.time()
         for _, c in self.client_list.items():
             bottleneck, std = c.get_bottleneck()
             weight = c.weight
@@ -138,7 +117,8 @@ class hmarl_server(pesudo_server):
                 break
             sum_weights -= weight
             esTotalBW -= target_bw
-
+        # t2 = time.time()
+        # print(t2 - t1)
         # print(bottleneck, std + bottleneck, fair_bw)
         # print("++++++++++++++")
         goal = VIDEO_BIT_RATE[0]
@@ -148,33 +128,6 @@ class hmarl_server(pesudo_server):
                 break
         
         return goal
-    
-    def pesudo_select_goal(self, client:client_info):
-        sample = random.random()
-        if client.client_idx == 0:
-            if sample < 0.1:
-                client.goal = 4.0
-            elif sample < 0.2:
-                client.goal = 6.5
-            elif sample < 0.25:
-                client.goal = 5.0
-            else:
-                client.goal = 8.0
-        elif client.client_idx == 1:
-            if sample < 0.1:
-                client.goal = 6.5
-            elif sample < 0.2:
-                client.goal = 10.0
-            else:
-                client.goal = 8.0
-        elif client.client_idx == 2:
-            if sample < 0.1:
-                client.goal = 2.5
-            elif sample < 0.2:
-                client.goal = 5.0
-            else:
-                client.goal = 4.0
-        return client.goal
     
     def train_meta_controller(self):
         if self.train_meta and self.agent.meta_count >= TRAIN_START_META and self.agent.meta_count % TRAIN_INTERVAL == 0:

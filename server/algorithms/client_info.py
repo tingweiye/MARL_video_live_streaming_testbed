@@ -23,10 +23,10 @@ LATENCY_PENALTY = 1
 JUMP_PENALTY = 3
 SMOOTH_PENALTY = 8
 
-QOE_QUALTITY_COEF = 10
+QOE_QUALTITY_COEF = 20
 QOE_FREEZE_PENALTY = 25
 QOE_LATENCY_PENALTY = 1
-QOE_SMOOTH_PENALTY = 10
+QOE_SMOOTH_PENALTY = 20
 
 class client_info:
     
@@ -65,7 +65,7 @@ class client_info:
                              5.0:25,
                              6.5:25,
                              8.0:25,
-                             10.0:20}
+                             10.0:25}
         
     def getLen(self):
         return len(self.rate_his)
@@ -148,7 +148,6 @@ class client_info:
     def get_qoe(self):
         log_rate = np.log(self.rate)
         log_last_rate = np.log(self.last_rate)
-        # print(QUALTITY_COEF  * log_rate, FREEZE_PENALTY * self.freeze, LATENCY_PENALTY* self.latency, SMOOTH_PENALTY * np.abs(log_rate - log_last_rate))
         QoE =     QOE_QUALTITY_COEF  * log_rate \
                 - QOE_FREEZE_PENALTY * self.freeze \
                 - QOE_LATENCY_PENALTY* self.latency \
@@ -157,7 +156,6 @@ class client_info:
     
     def get_intrinsic_reward(self, done, steps_taken, reward_file=""):
         # -- log scale reward --
-        # print(self.rate, self.last_rate)
         log_rate = np.log(self.rate)
         log_goal = np.log(self.goal)
         log_last_rate = np.log(self.last_rate)
@@ -167,11 +165,9 @@ class client_info:
                 - LATENCY_PENALTY* self.latency \
                 - JUMP_PENALTY   * self.jump \
                 - SMOOTH_PENALTY * np.abs(log_rate - log_last_rate)
-        # print(QUALTITY_COEF*log_rate, FREEZE_PENALTY * max(0.5, self.freeze))
                 
         if self.goal_reached():
             reward += self.reach_reward[self.goal]
-            # print(f"+++++++++get reward {self.reach_reward[self.goal]}++++++++++")
         elif self.goal < self.rate:
             reward -= QUALTITY_COEF * (log_rate - log_goal)
         else:
@@ -179,13 +175,6 @@ class client_info:
                                        
         if steps_taken >= 5: # If not following goal and causes freeze, give pentalty
             reward -= QOE_FREEZE_PENALTY * max(0.75, self.freeze) if self.freeze > 0.001 else 0
-
-        # reward_file.write(str(reward_self) + '\t' +
-        #             str(fair_coef) + '\t' +
-        #             str(min(0, INSTRUCTION_REWARD * last_instruction * (log_rate - log_fair_bw))) + '\t' +
-        #             str(reward - fair_coef * reward_self) + '\n'
-        #             )
-        # reward_file.flush()
         
         return reward
     

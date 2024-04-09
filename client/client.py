@@ -281,6 +281,9 @@ class Client:
             prepare = float(response.headers.get('Prepare-Time'))
             download_rate = float(response.headers.get('Rate'))
             true_bandwidth = float(response.headers.get('True-Bw'))
+            propotional_fairness = float(response.headers.get('PFair'))
+            maxmin_fairness = float(response.headers.get('MFair'))
+            client_qoe = float(response.headers.get('Qoe'))
             
             if self.algo == "MARL":
                 instruction = float(response.headers.get('Instruction'))
@@ -314,7 +317,10 @@ class Client:
                     "goal":goal,
                     "intrinsic_reward":intrinsic_reward, 
                     "extrinsic_reward":extrinsic_reward,
-                    "true_bandwidth": true_bandwidth}
+                    "true_bandwidth": true_bandwidth,
+                    "propotional_fairness": propotional_fairness,
+                    "maxmin_fairness": maxmin_fairness,
+                    "client_qoe": client_qoe}
             # return suggestion, prepare, passive_jump, server_time, instruction, fair_bw, exReward, download_rate, intrinsic_reward, extrinsic_reward
             return info
         except:
@@ -407,7 +413,10 @@ class Client:
             "download_rate":download_rate,
             "intrinsic_reward":intrinsic_reward, 
             "extrinsic_reward":extrinsic_reward,
-            "true_bandwidth": true_bandwidth
+            "true_bandwidth": true_bandwidth,
+            "propotional_fairness": info["propotional_fairness"],
+            "maxmin_fairness": info["maxmin_fairness"],
+            "client_qoe": info["client_qoe"]
         }
         return return_info
         

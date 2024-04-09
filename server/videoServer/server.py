@@ -26,11 +26,11 @@ class Server:
         if algo == "MARL":
             self.algo = marl_server()
         elif algo == "HMARL":
-            self.algo = hmarl_server(True, False)
+            self.algo = hmarl_server(is_train, False)
         else:
             self.algo = pesudo_server()
         
-        print(f"Using algorithm {algo}")
+        Logger.log(f"Using algorithm {algo}")
         
         self.next_idx = 0
         self.suggestion_diff = 0
@@ -121,6 +121,14 @@ class Server:
     def check_pred(self, startTime):
         return self.algo.bw_prediction(startTime)
     
+    def get_propotional_fairness(self):
+        return self.algo.get_propotional_fairness()
+    
+    def get_maxmin_fairness(self):
+        return self.algo.get_maxmin_fairness()
+    
+    def get_client_qoe(self, idx):
+        return self.algo.get_client_qoe(idx)    
 
 # A pesudo encoder
 class LiveEncoder(threading.Thread):

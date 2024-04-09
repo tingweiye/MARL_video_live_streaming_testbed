@@ -63,11 +63,12 @@ class traffic_shaper:
         subprocess.call(['sudo', 'tc', 'qdisc', 'del', 'dev', self.interface, 'root'])
         
     def test_shaping(self):
-        for r in self.test_trace:
+        for r in self.test_trace[:121]:
             rate = str(r) + 'Mbit'
             self.set_bandwidth(self.interface, rate)
             self.queue.put(r)
             time.sleep(self.duration)
+        self.queue.put(-1)
         subprocess.call(['sudo', 'tc', 'qdisc', 'del', 'dev', self.interface, 'root'])
         
 

@@ -1,6 +1,7 @@
 from algorithms.client_info import client_info
 from utils.config import Config
 import threading
+import numpy as np
 
 class pesudo_server:
     
@@ -39,3 +40,22 @@ class pesudo_server:
             low_all += low
             high_all += high
         return (low_all + high_all) / Config.SERVER_ESTIMATION_LEN / 2
+    
+    def get_propotional_fairness(self):
+        fairness = 0
+        for _, client in self.client_list.items():
+            qoe = client.get_qoe()
+            weight = client.weight
+            fairness += weight * np.log(max(qoe, 1))
+        return fairness
+    
+    def get_maxmin_fairness(self):
+        fairness = 10000
+        for _, client in self.client_list.items():
+            qoe = client.get_qoe()
+            weight = client.weight
+            fairness = min(qoe / weight, fairness)
+        return fairness
+    
+    def get_client_qoe(self, idx):
+        return self.client_list[idx].get_qoe()
