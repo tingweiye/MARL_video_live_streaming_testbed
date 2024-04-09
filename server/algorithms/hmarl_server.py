@@ -91,7 +91,10 @@ class hmarl_server(pesudo_server):
         return VIDEO_BIT_RATE[goal.item()], goal
     
     def select_rate(self, state_goal, epsilon):
-        action = self.agent.select_action(torch.from_numpy(state_goal).unsqueeze(0).type(dtype), epsilon)
+        if self.train_local:
+            action = self.agent.select_action(torch.from_numpy(state_goal).unsqueeze(0).type(dtype), epsilon)
+        else:
+            action = self.agent.select_action(torch.from_numpy(state_goal).unsqueeze(0).type(dtype), 0)
         self.agent.local_count += 1
         return VIDEO_BIT_RATE[action.item()], action
     
