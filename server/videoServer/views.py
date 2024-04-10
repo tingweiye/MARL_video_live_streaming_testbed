@@ -141,6 +141,6 @@ def client_exit(request):
     response = HttpResponse(f"Client {idx} registered")
     if server.num_clients() == 0:
         print("client number is 0")
-        threading.Timer(3, server.kill_server)
+        server.kill_server()
     return response
 
