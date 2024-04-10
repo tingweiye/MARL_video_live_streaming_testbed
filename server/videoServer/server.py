@@ -135,12 +135,11 @@ class Server:
         return len(self.algo.client_list)
     
     def kill_server(self):
-        threading.Timer(3, self.__kill)
-        
-    def __kill(self):
         print("kill server")
-        command = "lsof -ti:8080 | xargs kill -9"
+        command = "sleep 3 & lsof -ti:8080 | xargs kill -9"
         subprocess.run(command, shell=True)
+    
+        
 
 # A pesudo encoder
 class LiveEncoder(threading.Thread):
