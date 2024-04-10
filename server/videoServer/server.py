@@ -137,7 +137,7 @@ class Server:
     def kill_server(self):
         print("kill server")
         command = "sleep 3 & lsof -ti:8080 | xargs kill -9"
-        subprocess.run(command, shell=True)
+        subprocess.Popen(command, shell=True)
     
         
 
