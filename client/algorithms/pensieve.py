@@ -16,7 +16,7 @@ ACTOR_LR_RATE = 0.0001
 CRITIC_LR_RATE = 0.001
 NUM_AGENTS = 1
 TRAIN_SEQ_LEN = 100  # take as a train batch
-MODEL_SAVE_INTERVAL = 20
+MODEL_SAVE_INTERVAL = 50
 VIDEO_BIT_RATE = Config.BITRATE  # Kbps
 HD_REWARD = [1, 2, 3, 12, 15, 20]
 BUFFER_NORM_FACTOR = Config.CLIENT_MAX_BUFFER_LEN + 1
@@ -24,10 +24,10 @@ CHUNK_TIL_VIDEO_END_CAP = 48.0
 M_IN_K = 1000.0
 
 QUALTITY_COEF = 5
-FREEZE_PENALTY = 50
+FREEZE_PENALTY = 20
 LATENCY_PENALTY = 1
 JUMP_PENALTY = 2
-SMOOTH_PENALTY = 8
+SMOOTH_PENALTY = 5
 
 DEFAULT_QUALITY = Config.INITIAL_RATE  # default video quality without agent
 RANDOM_SEED = 42
@@ -89,8 +89,8 @@ class pensieve_solver:
             time_stamp = 0
 
             exploration_size = 5
-            episode_steps = 50 
-            update_num = 50
+            episode_steps = 30 
+            update_num = 20
             batch_size = 64
             gamma = 0.95
             gae_param = 0.95
