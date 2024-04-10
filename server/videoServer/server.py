@@ -5,6 +5,7 @@ import time
 import os
 import sys
 import threading
+import subprocess
 from multiprocessing import Process, Queue
 from scripts.traffic_shaping_server import regulator
 sys.path.append("..")
@@ -129,6 +130,10 @@ class Server:
     
     def get_client_qoe(self, idx):
         return self.algo.get_client_qoe(idx)    
+    
+    def kill_server(self):
+        command = "lsof -ti:8080 | xargs kill -9"
+        subprocess.run(command, shell=True)
 
 # A pesudo encoder
 class LiveEncoder(threading.Thread):

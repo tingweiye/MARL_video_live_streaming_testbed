@@ -5,6 +5,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.apps import apps
 import asyncio
 import threading
+import subprocess
 import os
 import time
 import sys
@@ -138,5 +139,6 @@ def client_exit(request):
         Logger.log(f"Client {idx} successfully exited from the server")
         
     response = HttpResponse(f"Client {idx} registered")
+    threading.Timer(3, server.kill_server)
     return response
 
