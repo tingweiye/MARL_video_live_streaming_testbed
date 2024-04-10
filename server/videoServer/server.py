@@ -131,6 +131,9 @@ class Server:
     def get_client_qoe(self, idx):
         return self.algo.get_client_qoe(idx)    
     
+    def num_clients(self):
+        return len(self.algo.client_list)
+    
     def kill_server(self):
         command = "lsof -ti:8080 | xargs kill -9"
         subprocess.run(command, shell=True)

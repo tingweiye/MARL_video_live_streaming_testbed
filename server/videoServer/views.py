@@ -139,6 +139,7 @@ def client_exit(request):
         Logger.log(f"Client {idx} successfully exited from the server")
         
     response = HttpResponse(f"Client {idx} registered")
-    threading.Timer(3, server.kill_server)
+    if server.num_clients() == 0:
+        threading.Timer(3, server.kill_server)
     return response
 
