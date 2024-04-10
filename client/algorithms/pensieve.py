@@ -52,15 +52,12 @@ dlongtype = torch.cuda.LongTensor if torch.cuda.is_available() else torch.LongTe
 
 class pensieve_solver:
     
-    def __init__(self, client):
+    def __init__(self, client, trail):
         self.client = client
+        self.trail = trail
     
     def solve(self, train=True):
-        logging.basicConfig(filename=PENSIEVE_LOG_FILE + '_central',
-                        filemode='w',
-                        level=logging.INFO)
-        print("Hello!!!!!!")
-        with open(PENSIEVE_LOG_FILE + '_record', 'w') as log_file, open(PENSIEVE_LOG_FILE + '_test', 'w') as test_log_file:
+        with open(PENSIEVE_LOG_FILE + '_record_' + str(self.trail), 'w') as log_file:
 
             model_actor = ac.Actor(A_DIM).type(dtype)
             model_critic = ac.Critic(A_DIM).type(dtype)
@@ -137,6 +134,9 @@ class pensieve_solver:
                         jump = info["jump"]
                         server_time = info["server_time"]
                         true_bandwidth = info["true_bandwidth"]
+                        propotional_fairness = info["propotional_fairness"]
+                        maxmin_fairness = info["maxmin_fairness"]
+                        client_qoe = info["client_qoe"]
                         
                         time_stamp = server_time
 
@@ -183,7 +183,10 @@ class pensieve_solver:
                                     str(latency) + '\t' +
                                     str(jump) + '\t' +
                                     str(reward) + '\t' +
-                                    str(true_bandwidth) + '\n')
+                                    str(true_bandwidth) + '\t' +
+                                    str(propotional_fairness) + '\t' +
+                                    str(maxmin_fairness) + '\t' +
+                                    str(client_qoe) + '\n')
                         log_file.flush()
 
                     # one last step

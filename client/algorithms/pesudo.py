@@ -22,16 +22,13 @@ dlongtype = torch.cuda.LongTensor if torch.cuda.is_available() else torch.LongTe
 
 class pesudo_solver:
     
-    def __init__(self, client, weight):
+    def __init__(self, client, weight, trail):
         self.client = client
         self.weight = weight
+        self.trail = trail
                         
     def solve(self, train=True):
-        logging.basicConfig(filename=HMARL_LOG_FILE + '_central',
-                        filemode='w',
-                        level=logging.INFO)
-    
-        with open(HMARL_LOG_FILE + '_record', 'w') as log_file, open(HMARL_LOG_FILE + '_reward', 'w') as reward_file:
+        with open(HMARL_LOG_FILE + '_record_' + str(self.trail), 'w') as log_file:
 
             rate = 0
             last_rate = rate

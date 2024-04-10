@@ -47,7 +47,7 @@ async def download_video(request, video_filename):
     
     algo = request.META.get('HTTP_ALGO')
     
-    # t1 = time.time()
+    t1 = time.time()
     server_time = server.get_server_time()
     info = {"rate": request_rate,
             "bw": estimated_bw,
@@ -73,7 +73,8 @@ async def download_video(request, video_filename):
     true_bandwidth = server.get_true_bandwidth()
     
     video_path = os.path.join(os.getcwd(), "data/"+video_filename)
-    # t2 = time.time()
+    t2 = time.time()
+    print("process: ", t2 - t1)
     if os.path.exists(video_path):
         # lower, upper = server.encoder.check_range()
         Logger.log(f"Requested client: {client_idx}, gop: {request_gop}, rate: {request_rate}, server range: {server.encoder.check_range()}")

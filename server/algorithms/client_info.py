@@ -38,6 +38,7 @@ class client_info:
         self.bw, self.idle, self.bw_idle, self.buffer, self.freeze, self.latency, self.jump, self.startTime, self.goal = 0, 0, 0, 0, 0, 0, 0, 0, 0
         self.rate_his = MovingQueue(Config.SERVER_ALGO_BUFFER_LEN) 
         self.bw_his = MovingQueue(Config.SERVER_ALGO_BUFFER_LEN) 
+        self.bottleneck = MovingQueue(50) 
         self.bw_idle_his = MovingQueue(Config.SERVER_ALGO_BUFFER_LEN) 
         self.idle_his = MovingQueue(Config.SERVER_ALGO_BUFFER_LEN) 
         self.buffer_his = MovingQueue(Config.SERVER_ALGO_BUFFER_LEN) 
@@ -77,7 +78,7 @@ class client_info:
         return self.bw_idle_his.avg()
     
     def get_bottleneck(self):
-        return self.bw_his.max(), self.bw_his.std()
+        return self.bottleneck.max(), self.bottleneck.std()
     
     def get_traffic_low_high(self, pivot):
         low, high = 0, 0
@@ -119,6 +120,7 @@ class client_info:
         
         self.rate_his.add(self.rate)
         self.bw_his.add(self.bw)
+        self.bottleneck.add(self.bw)
         self.idle_his.add(self.idle)
         self.bw_idle_his.add(self.bw_idle)
         self.buffer_his.add(self.buffer)

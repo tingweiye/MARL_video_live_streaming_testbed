@@ -22,6 +22,7 @@ parser.add_argument('--port', default='8080', type=str, help='port')
 parser.add_argument('--algo', default='MARL', type=str, help='ABR algorithm')
 parser.add_argument('--sleep', default=0, type=float, help='Wait time')
 parser.add_argument('--weight', default=1, type=float, help='Weight of a client')
+parser.add_argument('--trail', default=0, type=str, help='# of experinment')
 args = parser.parse_args()
 
 STALLION_LOG_FILE = './results/stallion/log'
@@ -59,15 +60,15 @@ class Simulator:
             
             
     def pensieveRun(self):
-        self.solver = pensieve.pensieve_solver(self.client)
+        self.solver = pensieve.pensieve_solver(self.client, args.trail)
         self.solver.solve()
-        
+    
     def marlRun(self):
         self.solver = marl.marl_solver(self.client, args.weight)
         self.solver.solve()
         
     def hmarlRun(self):
-        self.solver = pesudo.pesudo_solver(self.client, args.weight)
+        self.solver = pesudo.pesudo_solver(self.client, args.weight, args.trail)
         self.solver.solve()
         
     def run(self):
