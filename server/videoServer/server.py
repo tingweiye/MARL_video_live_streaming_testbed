@@ -135,6 +135,7 @@ class Server:
         return len(self.algo.client_list)
     
     def kill_server(self):
+        print("kill server")
         command = "lsof -ti:8080 | xargs kill -9"
         subprocess.run(command, shell=True)
 
