@@ -91,10 +91,7 @@ class hmarl_server(pesudo_server):
         return VIDEO_BIT_RATE[goal.item()], goal
     
     def select_rate(self, state_goal, epsilon):
-        if self.train_local:
-            action = self.agent.select_action(torch.from_numpy(state_goal).unsqueeze(0).type(dtype), epsilon)
-        else:
-            action = self.agent.select_action(torch.from_numpy(state_goal).unsqueeze(0).type(dtype), 0)
+        action = self.agent.select_action(torch.from_numpy(state_goal).unsqueeze(0).type(dtype), epilson=epsilon)
         self.agent.local_count += 1
         return VIDEO_BIT_RATE[action.item()], action
     
@@ -179,8 +176,7 @@ class hmarl_server(pesudo_server):
             
             
             meta_epsilon = client.meta_controller_epsilon
-            client.goal, client.goal_idx = self.select_goal(meta_state, meta_epsilon)
-            # select pesudo goal
+            # client.goal, client.goal_idx = self.select_goal(meta_state, meta_epsilon)
             client.goal = self.server_goal_estimation(client)
             Logger.log(f"Client {client.client_idx} gets goal {client.goal} with epsilon {client.meta_controller_epsilon}")
             
@@ -221,8 +217,9 @@ class hmarl_server(pesudo_server):
                 Logger.log("Local controller model saved")
                 self.agent.save_controller_model(self.agent.local_count)
         # Select new rate
-        epsilon = client.controller_epsilon
-        client.rate, client.rate_idx = self.select_rate(state_goal, epsilon)
+        # epsilon = client.controller_epsilon if self.train_local else 0
+        # client.rate, client.rate_idx = self.select_rate(state_goal, epsilon)
+        client.rate = client.goal
         self.update_local_lock.release()
         Logger.log(f"Client {client.client_idx} gets rate {client.rate} with epsilon {client.controller_epsilon}") 
         
