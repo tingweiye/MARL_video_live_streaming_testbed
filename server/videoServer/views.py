@@ -19,7 +19,7 @@ from utils.config import Config
 # VIDEO_FORMAT = ".mp4"
 # Server initialization
 # server = apps.get_app_config('videoServer').server
-server = Server("HMARL", is_train=False)
+server = Server("PENSIEVE", is_train=False)
 shared_data_lock = threading.Lock()
 shared_register_lock = threading.Lock()
 

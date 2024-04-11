@@ -31,7 +31,7 @@ class traffic_shaper:
         self.read_test_trace('data/traces/50ms_loss0.5_test_0.txt')
     
     def set_bandwidth(self, interface, rate):
-        subprocess.call(['sudo', 'tc', 'qdisc', 'replace', 'dev', interface, 'root', 'tbf', 'rate', rate, 'burst', '32kbit', 'latency', '30ms'])
+        subprocess.call(['sudo', 'tc', 'qdisc', 'replace', 'dev', interface, 'root', 'tbf', 'rate', rate, 'burst', '128kbit', 'latency', '30ms'])
         
     def get_random_duration(self):
         sample = random.random()
