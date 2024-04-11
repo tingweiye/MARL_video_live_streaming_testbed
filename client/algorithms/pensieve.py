@@ -23,11 +23,11 @@ BUFFER_NORM_FACTOR = Config.CLIENT_MAX_BUFFER_LEN + 1
 CHUNK_TIL_VIDEO_END_CAP = 48.0
 M_IN_K = 1000.0
 
-QUALTITY_COEF = 5
+QUALTITY_COEF = 10
 FREEZE_PENALTY = 20
 LATENCY_PENALTY = 1
 JUMP_PENALTY = 2
-SMOOTH_PENALTY = 5
+SMOOTH_PENALTY = 10
 
 DEFAULT_QUALITY = Config.INITIAL_RATE  # default video quality without agent
 RANDOM_SEED = 42
@@ -88,10 +88,10 @@ class pensieve_solver:
             epoch = 0
             time_stamp = 0
 
-            exploration_size = 5
+            exploration_size = 10
             episode_steps = 30 
             update_num = 20
-            batch_size = 64
+            batch_size = 32
             gamma = 0.95
             gae_param = 0.95
             clip = 0.2
@@ -145,11 +145,10 @@ class pensieve_solver:
                         log_last_rate = np.log(last_rate)
 
                         reward =  QUALTITY_COEF  * log_rate \
-                                - FREEZE_PENALTY * max(0.75, freeze) if freeze > 0.001 else 0 \
+                                - (FREEZE_PENALTY * max(0.75, freeze) if freeze > 0.001 else 0) \
                                 - LATENCY_PENALTY* latency \
                                 - JUMP_PENALTY   * jump \
                                 - SMOOTH_PENALTY * np.abs(log_rate - log_last_rate) 
-                                
                         # reward_max = 2.67
                         # print(f"Get reward: {reward}, log_rate: {log_rate}, freeze: {freeze}, latency: {latency}")
                         # reward = float(max(min(reward, reward_max), -4*reward_max) / reward_max)
