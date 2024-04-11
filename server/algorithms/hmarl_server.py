@@ -99,10 +99,10 @@ class hmarl_server(pesudo_server):
         return VIDEO_BIT_RATE[action.item()], action
     
     def server_goal_estimation(self, client:client_info):
-        a = np.array([x.get_smooth_bw_idle() for _, x in self.client_list.items()])
+        # a = np.array([x.get_smooth_bw_idle() for _, x in self.client_list.items()])
         b = np.array([x.get_smooth_bw() for _, x in self.client_list.items()])
         esTotalBW = b.sum()
-        print(f"ESTotalBW: {esTotalBW}")
+        print(f"ESTotalBW: {esTotalBW:.3f}, {b}")
         
         target_bw = 0
         sum_weights = self.sum_weights
