@@ -53,7 +53,9 @@ class hmarl_server(pesudo_server):
         
         self.train_local_event = threading.Event()
         
+        print("hello???")
         if not train_local:
+            print("hello!!!")
             self.load_model_local(MODEL_PATH)
     
     def load_model_local(self, file_path):
@@ -217,9 +219,9 @@ class hmarl_server(pesudo_server):
                 Logger.log("Local controller model saved")
                 self.agent.save_controller_model(self.agent.local_count)
         # Select new rate
-        # epsilon = client.controller_epsilon if self.train_local else 0
-        # client.rate, client.rate_idx = self.select_rate(state_goal, epsilon)
-        client.rate = client.goal
+        epsilon = client.controller_epsilon if self.train_local else 0
+        client.rate, client.rate_idx = self.select_rate(state_goal, epsilon)
+        # client.rate = client.goal
         self.update_local_lock.release()
         Logger.log(f"Client {client.client_idx} gets rate {client.rate} with epsilon {client.controller_epsilon}") 
         
