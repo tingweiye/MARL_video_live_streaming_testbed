@@ -25,7 +25,7 @@ class traffic_shaper:
         
         self.queue = queue
         self.interface = 'eth1'
-        self.duration = 10
+        self.duration = 0.999
         
         self.read_train_trace('data/traces/50ms_loss0.5_train_all.txt')
         self.read_test_trace('data/traces/50ms_loss0.5_test_0.txt')
@@ -63,7 +63,7 @@ class traffic_shaper:
         subprocess.call(['sudo', 'tc', 'qdisc', 'del', 'dev', self.interface, 'root'])
         
     def test_shaping(self):
-        for r in self.test_trace[:121]:
+        for r in self.test_trace[:401]:
             rate = str(r) + 'Mbit'
             self.set_bandwidth(self.interface, rate)
             self.queue.put(r)
