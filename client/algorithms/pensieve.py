@@ -23,11 +23,11 @@ BUFFER_NORM_FACTOR = Config.CLIENT_MAX_BUFFER_LEN + 1
 CHUNK_TIL_VIDEO_END_CAP = 48.0
 M_IN_K = 1000.0
 
-QUALTITY_COEF = 10
-FREEZE_PENALTY = 20
+QUALTITY_COEF = 5
+FREEZE_PENALTY = 50
 LATENCY_PENALTY = 1
 JUMP_PENALTY = 2
-SMOOTH_PENALTY = 10
+SMOOTH_PENALTY = 6
 
 DEFAULT_QUALITY = Config.INITIAL_RATE  # default video quality without agent
 RANDOM_SEED = 42
@@ -80,7 +80,7 @@ class pensieve_solver:
             state[1, -1] = float(self.client.bw) / 10
             state[2, -1] = float(self.client.download_time)
             state[3, -1] = float(self.client.latency) / BUFFER_NORM_FACTOR
-            state[4, -1] = float(self.client.freeze)  # mega byte
+            state[4, -1] = float(self.client.freeze) / 5# mega byte
             state[5, -1] = float(self.client.idle)
             state[6, -1] = self.client.get_buffer_size() / BUFFER_NORM_FACTOR  # 10 sec
 
@@ -89,10 +89,10 @@ class pensieve_solver:
             time_stamp = 0
 
             exploration_size = 10
-            episode_steps = 30 
-            update_num = 20
+            episode_steps = 15 
+            update_num = 10
             batch_size = 32
-            gamma = 0.95
+            gamma = 0.8
             gae_param = 0.95
             clip = 0.2
             ent_coeff = 0.98
@@ -283,4 +283,4 @@ class pensieve_solver:
                         torch.save(model_actor.state_dict(), actor_model_save_path)
                         torch.save(model_critic.state_dict(), critic_model_save_path)
                         # entropy_weight = 0.95 * entropy_weight
-                        ent_coeff = 0.95 * ent_coeff
+                        ent_coeff = 0.995 * ent_coeff

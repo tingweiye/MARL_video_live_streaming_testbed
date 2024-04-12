@@ -16,17 +16,21 @@ class Actor(torch.nn.Module):
         channel_fc = 128
 
         # self.bn = nn.BatchNorm1d(self.input_channel)
-
         self.actor_conv1 = nn.Conv1d(self.input_channel, channel_cnn, 4) # rate
         self.actor_conv2 = nn.Conv1d(self.input_channel, channel_cnn, 4) # bw
-        # self.actor_conv3 = nn.Conv1d(self.input_channel, channel_cnn, 4) # download time
-        # self.actor_fc_1 = nn.Linear(self.input_channel, channel_fc) # latency
-        self.actor_fc_2 = nn.Linear(self.input_channel, channel_fc) # freeze
-        self.actor_fc_3 = nn.Linear(self.input_channel, channel_fc) # idle
-        self.actor_fc_4 = nn.Linear(self.input_channel, channel_fc) # buffer len
+        self.actor_conv3 = nn.Conv1d(self.input_channel, channel_cnn, 4) # freeze
+        self.actor_conv4 = nn.Conv1d(self.input_channel, channel_cnn, 4) # idle
+        self.actor_conv5 = nn.Conv1d(self.input_channel, channel_cnn, 4) # buffer
+        # self.actor_conv1 = nn.Conv1d(self.input_channel, channel_cnn, 4) # rate
+        # self.actor_conv2 = nn.Conv1d(self.input_channel, channel_cnn, 4) # bw
+        # # self.actor_conv3 = nn.Conv1d(self.input_channel, channel_cnn, 4) # download time
+        # # self.actor_fc_1 = nn.Linear(self.input_channel, channel_fc) # latency
+        # self.actor_fc_2 = nn.Linear(self.input_channel, channel_fc) # freeze
+        # self.actor_fc_3 = nn.Linear(self.input_channel, channel_fc) # idle
+        # self.actor_fc_4 = nn.Linear(self.input_channel, channel_fc) # buffer len
 
         #===================Hide layer=========================
-        incoming_size = 2*channel_cnn*5 + 3 * channel_fc  #+ 1 * channel_cnn*3
+        incoming_size = 5*channel_cnn*5 #+ 3 * channel_fc  #+ 1 * channel_cnn*3
 
         self.fc1 = nn.Linear(in_features=incoming_size, out_features=256)
         # self.fc2 = nn.Linear(in_features=channel_fc, out_features=channel_fc)
@@ -45,21 +49,24 @@ class Actor(torch.nn.Module):
 
         x_1 = F.relu(self.actor_conv1(inputs[:, 0:1, :]))
         x_2 = F.relu(self.actor_conv2(inputs[:, 1:2, :]))
+        x_3 = F.relu(self.actor_conv2(inputs[:, 2:3, :]))
+        x_4 = F.relu(self.actor_conv2(inputs[:, 3:4, :]))
+        x_5 = F.relu(self.actor_conv2(inputs[:, 4:5, :]))
         # x_3 = F.relu(self.actor_conv3(inputs[:, 2:3, :]))
         # x_4 = F.relu(self.actor_fc_1(inputs[:, 3:4, -1]))
-        x_5 = F.relu(self.actor_fc_2(inputs[:, 4:5, -1]))
-        x_6 = F.relu(self.actor_fc_3(inputs[:, 5:6, -1]))
-        x_7 = F.relu(self.actor_fc_4(inputs[:, 6:7, -1]))
+        # x_5 = F.relu(self.actor_fc_2(inputs[:, 4:5, -1]))
+        # x_6 = F.relu(self.actor_fc_3(inputs[:, 5:6, -1]))
+        # x_7 = F.relu(self.actor_fc_4(inputs[:, 6:7, -1]))
 
         x_1 = x_1.view(-1, self.num_flat_features(x_1))
         x_2 = x_2.view(-1, self.num_flat_features(x_2))
-        # x_3 = x_3.view(-1, self.num_flat_features(x_3))
-        # x_4 = x_4.view(-1, self.num_flat_features(x_4))
+        x_3 = x_3.view(-1, self.num_flat_features(x_3))
+        x_4 = x_4.view(-1, self.num_flat_features(x_4))
         x_5 = x_5.view(-1, self.num_flat_features(x_5))
-        x_6 = x_6.view(-1, self.num_flat_features(x_6))
-        x_7 = x_7.view(-1, self.num_flat_features(x_7))
+        # x_6 = x_6.view(-1, self.num_flat_features(x_6))
+        # x_7 = x_7.view(-1, self.num_flat_features(x_7))
 
-        x = torch.cat([x_1, x_2, x_5, x_6, x_7], 1)
+        x = torch.cat([x_1, x_2, x_3, x_4, x_5], 1)
         x = F.relu(self.fc1(x))
         # actor
         # actor = F.relu(self.fc1(x))
@@ -86,14 +93,17 @@ class Critic(torch.nn.Module):
 
         self.actor_conv1 = nn.Conv1d(self.input_channel, channel_cnn, 4) # rate
         self.actor_conv2 = nn.Conv1d(self.input_channel, channel_cnn, 4) # bw
+        self.actor_conv3 = nn.Conv1d(self.input_channel, channel_cnn, 4) # freeze
+        self.actor_conv4 = nn.Conv1d(self.input_channel, channel_cnn, 4) # idle
+        self.actor_conv5 = nn.Conv1d(self.input_channel, channel_cnn, 4) # buffer
         # self.actor_conv3 = nn.Conv1d(self.input_channel, channel_cnn, 4) # download time
         # self.actor_fc_1 = nn.Linear(self.input_channel, channel_fc) # latency
-        self.actor_fc_2 = nn.Linear(self.input_channel, channel_fc) # freeze
-        self.actor_fc_3 = nn.Linear(self.input_channel, channel_fc) # idle
-        self.actor_fc_4 = nn.Linear(self.input_channel, channel_fc) # buffer len
+        # self.actor_fc_2 = nn.Linear(self.input_channel, channel_fc) # freeze
+        # self.actor_fc_3 = nn.Linear(self.input_channel, channel_fc) # idle
+        # self.actor_fc_4 = nn.Linear(self.input_channel, channel_fc) # buffer len
 
         #===================Hide layer=========================
-        incoming_size = 2*channel_cnn*5 + 3 * channel_fc  #+ 1 * channel_cnn*3
+        incoming_size = 5*channel_cnn*5 #+ 3 * channel_fc  #+ 1 * channel_cnn*3
 
         self.fc1 = nn.Linear(in_features=incoming_size, out_features=256)
         # self.fc2 = nn.Linear(in_features=channel_fc, out_features=channel_fc)
@@ -113,19 +123,22 @@ class Critic(torch.nn.Module):
         x_2 = F.relu(self.actor_conv2(inputs[:, 1:2, :]))
         # x_3 = F.relu(self.actor_conv3(inputs[:, 2:3, :]))
         # x_4 = F.relu(self.actor_fc_1(inputs[:, 3:4, -1]))
-        x_5 = F.relu(self.actor_fc_2(inputs[:, 4:5, -1]))
-        x_6 = F.relu(self.actor_fc_3(inputs[:, 5:6, -1]))
-        x_7 = F.relu(self.actor_fc_4(inputs[:, 6:7, -1]))
+        x_3 = F.relu(self.actor_conv3(inputs[:, 2:3, :]))
+        x_4 = F.relu(self.actor_conv4(inputs[:, 3:4, :]))
+        x_5 = F.relu(self.actor_conv5(inputs[:, 4:5, :]))
+        # x_5 = F.relu(self.actor_fc_2(inputs[:, 4:5, -1]))
+        # x_6 = F.relu(self.actor_fc_3(inputs[:, 5:6, -1]))
+        # x_7 = F.relu(self.actor_fc_4(inputs[:, 6:7, -1]))
 
         x_1 = x_1.view(-1, self.num_flat_features(x_1))
         x_2 = x_2.view(-1, self.num_flat_features(x_2))
-        # x_3 = x_3.view(-1, self.num_flat_features(x_3))
-        # x_4 = x_4.view(-1, self.num_flat_features(x_4))
+        x_3 = x_3.view(-1, self.num_flat_features(x_3))
+        x_4 = x_4.view(-1, self.num_flat_features(x_4))
         x_5 = x_5.view(-1, self.num_flat_features(x_5))
-        x_6 = x_6.view(-1, self.num_flat_features(x_6))
-        x_7 = x_7.view(-1, self.num_flat_features(x_7))
+        # x_6 = x_6.view(-1, self.num_flat_features(x_6))
+        # x_7 = x_7.view(-1, self.num_flat_features(x_7))
 
-        x = torch.cat([x_1, x_2, x_5, x_6, x_7], 1)
+        x = torch.cat([x_1, x_2, x_3, x_4, x_5], 1)
         x = F.relu(self.fc1(x))
         # critic
         # critic = F.relu(self.fc1(x))
