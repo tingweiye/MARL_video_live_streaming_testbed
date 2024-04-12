@@ -4,6 +4,7 @@ from client import Client
 import sys
 from algorithms import (stallion,
                         pensieve,
+                        pensieve_dqn,
                         marl,
                         pesudo)
 import numpy as np
@@ -60,7 +61,7 @@ class Simulator:
             
             
     def pensieveRun(self):
-        self.solver = pensieve.pensieve_solver(self.client, args.trail)
+        self.solver = pensieve_dqn.pensieve_solver(self.client, args.trail)
         self.solver.solve()
     
     def marlRun(self):
