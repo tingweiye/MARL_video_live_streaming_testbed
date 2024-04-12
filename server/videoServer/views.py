@@ -15,11 +15,12 @@ sys.path.append("..")
 from videoServer.server import Server
 from utils.utils import Logger
 from utils.config import Config
+# from gunicorn_config import GUNICORN_SERVER
 
 # VIDEO_FORMAT = ".mp4"
 # Server initialization
 # server = apps.get_app_config('videoServer').server
-server = Server("HMARL", is_train=True)
+server = Server("HMARL", is_train=False)
 shared_data_lock = threading.Lock()
 shared_register_lock = threading.Lock()
 

@@ -1,5 +1,15 @@
 cd server
 eval "$(conda shell.bash hook)"
 conda activate marl
-gunicorn routing:application -c gunicorn_config.py
-#python manage.py runserver 10.0.10.2:8080
+# Initialize counter
+counter=0
+# echo $start_time
+
+# Execute test.py 10 times
+while [ $counter -lt 10 ]; do
+    # Execute the Python script with counter as parameter
+    echo $counter > .control
+    gunicorn routing:application -c gunicorn_config.py
+    # Increment counter
+    ((counter++))
+done

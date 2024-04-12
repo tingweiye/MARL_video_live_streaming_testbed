@@ -46,7 +46,7 @@ class pesudo_server:
         for _, client in self.client_list.items():
             qoe = client.get_qoe()
             weight = client.weight
-            fairness += weight * np.log(max(qoe, 1))
+            fairness += weight * np.log(max(qoe, 0.1))
         return fairness
     
     def get_maxmin_fairness(self):

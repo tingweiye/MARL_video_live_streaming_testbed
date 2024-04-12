@@ -25,13 +25,17 @@ class traffic_shaper:
         
         self.queue = queue
         self.interface = 'eth1'
-        self.duration = 0.999
+        self.duration = 0.9999
+        self.test_start = 0
+        self.episode = 400
         
+        self.get_control_number()
         self.read_train_trace('data/traces/50ms_loss0.5_train_all.txt')
         self.read_test_trace('data/traces/50ms_loss0.5_test_0.txt')
+        
     
-    def set_bandwidth(self, interface, rate):
-        subprocess.call(['sudo', 'tc', 'qdisc', 'replace', 'dev', interface, 'root', 'tbf', 'rate', rate, 'burst', '128kbit', 'latency', '30ms'])
+    def set_bandwidth(self, interface, rate, rtt):
+        subprocess.call(['sudo', 'tc', 'qdisc', 'replace', 'dev', interface, 'root', 'tbf', 'rate', rate, 'burst', '128kbit', 'latency', f'{rtt}ms'])
         
     def get_random_duration(self):
         sample = random.random()
@@ -56,21 +60,26 @@ class traffic_shaper:
         for _ in range(10):
             for r in self.train_trace:
                 rate = str(r) + 'Mbit'
-                self.set_bandwidth(self.interface, rate)
+                self.set_bandwidth(self.interface, rate, random.randint(20, 30))
                 Logger.log(f"Bandwitdh set to {rate}")
                 self.queue.put(r)
                 time.sleep(self.get_random_duration())
         subprocess.call(['sudo', 'tc', 'qdisc', 'del', 'dev', self.interface, 'root'])
         
     def test_shaping(self):
-        for r in self.test_trace[:401]:
+        Logger.log(f"Test sub trace from {self.test_start*self.episode} to {self.test_start*self.episode+self.episode}")
+        for r in self.test_trace[self.test_start*self.episode:self.test_start*self.episode+self.episode+1]:
             rate = str(r) + 'Mbit'
-            self.set_bandwidth(self.interface, rate)
+            self.set_bandwidth(self.interface, rate, random.randint(20, 30))
             self.queue.put(r)
             time.sleep(self.duration)
         self.queue.put(-1)
         subprocess.call(['sudo', 'tc', 'qdisc', 'del', 'dev', self.interface, 'root'])
         
+    def get_control_number(self):
+        with open('.control', 'r') as file:
+            content = file.read().strip()
+        self.test_start = int(content)
 
     def test(self):
         rate_start = '10Mbit'
