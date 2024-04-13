@@ -222,7 +222,7 @@ class hmarl_server(pesudo_server):
         epsilon = client.controller_epsilon if self.train_local else 0
         client.rate, client.rate_idx = self.select_rate(state_goal, epsilon)
         # client.rate = client.goal
-        client.rate = 4.0
+        # client.rate = 4.0
         self.update_local_lock.release()
         Logger.log(f"Client {client.client_idx} gets rate {client.rate} with epsilon {client.controller_epsilon}") 
         
