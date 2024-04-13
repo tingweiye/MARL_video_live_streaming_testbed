@@ -60,7 +60,7 @@ class traffic_shaper:
         for _ in range(10):
             for r in self.train_trace:
                 rate = str(r) + 'Mbit'
-                rtt = random.randint(20, 30)
+                rtt = random.randint(10, 20)
                 self.set_bandwidth(self.interface, rate, rtt)
                 Logger.log(f"Bandwitdh set to {rate}, RTT set to {rtt}")
                 self.queue.put(r)
@@ -71,7 +71,7 @@ class traffic_shaper:
         Logger.log(f"Test sub trace from {self.test_start*self.episode} to {self.test_start*self.episode+self.episode}")
         for r in self.test_trace[self.test_start*self.episode:self.test_start*self.episode+self.episode+1]:
             rate = str(r) + 'Mbit'
-            rtt = random.randint(20, 30)
+            rtt = random.randint(10, 20)
             self.set_bandwidth(self.interface, rate, rtt)
             Logger.log(f"Bandwitdh set to {rate}, RTT set to {rtt}")
             self.queue.put(r)
