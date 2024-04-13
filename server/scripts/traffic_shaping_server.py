@@ -35,7 +35,7 @@ class traffic_shaper:
         
     
     def set_bandwidth(self, interface, rate, rtt):
-        subprocess.call(['sudo', 'tc', 'qdisc', 'replace', 'dev', interface, 'root', 'netem', 'rate', rate, 'delay', f'{rtt}ms'])
+        subprocess.call(['sudo', 'tc', 'qdisc', 'replace', 'dev', interface, 'root', 'netem', 'rate', rate, 'delay', f'{0}ms'])
         
     def get_random_duration(self):
         sample = random.random()
