@@ -79,7 +79,7 @@ class client_info:
         return self.bw_idle_his.avg()
     
     def get_bottleneck(self):
-        return self.bottleNeck, self.bottleneck.std()
+        return self.bottleneck.max(), self.bottleneck.std()
     
     def get_traffic_low_high(self, pivot):
         low, high = 0, 0
