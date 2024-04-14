@@ -18,7 +18,7 @@ MIN_EPSILON = 0.01
 EPSILON_DECAY = 0.9995
 
 QUALTITY_COEF = 5
-FREEZE_PENALTY = 50
+FREEZE_PENALTY = 70
 LATENCY_PENALTY = 1
 JUMP_PENALTY = 3
 SMOOTH_PENALTY = 8
@@ -39,6 +39,7 @@ class client_info:
         self.rate_his = MovingQueue(Config.SERVER_ALGO_BUFFER_LEN) 
         self.bw_his = MovingQueue(Config.SERVER_ALGO_BUFFER_LEN) 
         self.bottleneck = MovingQueue(50) 
+        self.bottleNeck = 0
         self.bw_idle_his = MovingQueue(Config.SERVER_ALGO_BUFFER_LEN) 
         self.idle_his = MovingQueue(Config.SERVER_ALGO_BUFFER_LEN) 
         self.buffer_his = MovingQueue(Config.SERVER_ALGO_BUFFER_LEN) 
@@ -60,12 +61,12 @@ class client_info:
         self.last_state = np.zeros((S_INFO,S_LEN))
         self.last_meta_state = np.zeros((1, S_META))
         
-        self.reach_reward = {2.5:50,
-                             4.0:45,
-                             5.0:40,
-                             6.5:35,
-                             8.0:35,
-                             10.0:30}
+        self.reach_reward = {2.5:65,
+                             4.0:60,
+                             5.0:60,
+                             6.5:50,
+                             8.0:50,
+                             10.0:50}
         
     def getLen(self):
         return len(self.rate_his)
@@ -78,7 +79,7 @@ class client_info:
         return self.bw_idle_his.avg()
     
     def get_bottleneck(self):
-        return self.bottleneck.max(), self.bottleneck.std()
+        return self.bottleNeck, self.bottleneck.std()
     
     def get_traffic_low_high(self, pivot):
         low, high = 0, 0
@@ -117,6 +118,7 @@ class client_info:
         self.latency = info["latency"]
         self.jump = info["jump"]
         self.startTime = info["startTime"]
+        self.bottleNeck = max(self.bottleNeck, self.bw)
         
         self.rate_his.add(self.rate)
         self.bw_his.add(self.bw)
