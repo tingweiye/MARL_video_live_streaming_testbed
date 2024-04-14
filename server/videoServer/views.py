@@ -144,3 +144,12 @@ def client_exit(request):
         server.kill_server()
     return response
 
+@require_POST
+@csrf_exempt
+def regulator_notify(request):
+    true_bandwidth = float(request.META.get('HTTP_BW'))
+    server.set_true_bandwidth(true_bandwidth)
+    print(f"server bandwidth set to {true_bandwidth}")
+    response = HttpResponse(f"Set")
+    return response
+

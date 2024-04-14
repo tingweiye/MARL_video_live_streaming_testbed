@@ -55,6 +55,11 @@ class Server:
             self.true_bandwidth_lock.release()
             return self.true_bandwidth
         
+    def set_true_bandwidth(self, bw):
+        self.true_bandwidth_lock.acquire()
+        self.true_bandwidth = bw
+        self.true_bandwidth_lock.release()
+        
     def register_client(self, weight):
         if (self.next_idx >= self.max_client_num):
             return -1
