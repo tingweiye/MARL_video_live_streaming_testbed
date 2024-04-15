@@ -9,7 +9,7 @@ while [ $counter -lt 50 ]; do
     echo $counter > .control
     gunicorn routing:application -c gunicorn_config.py
     # Increment counter
-    ((counter++))
+    counter=$((counter+1))
 done
 
 # gunicorn routing:application -c gunicorn_config.py
