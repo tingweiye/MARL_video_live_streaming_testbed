@@ -61,8 +61,8 @@ class Simulator:
             
             
     def pensieveRun(self):
-        self.solver = pensieve_dqn.pensieve_solver(self.client, args.trail)
-        self.solver.solve()
+        self.solver = pensieve_dqn.pensieve_solver(self.client, args.trail, )
+        self.solver.solve(train=False)
     
     def marlRun(self):
         self.solver = marl.marl_solver(self.client, args.weight)

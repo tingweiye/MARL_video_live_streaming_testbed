@@ -53,9 +53,7 @@ class hmarl_server(pesudo_server):
         
         self.train_local_event = threading.Event()
         
-        print("hello???")
         if not train_local:
-            print("hello!!!")
             self.load_model_local(MODEL_PATH)
     
     def load_model_local(self, file_path):
@@ -224,7 +222,7 @@ class hmarl_server(pesudo_server):
         # client.rate = client.goal
         # client.rate = 4.0
         self.update_local_lock.release()
-        Logger.log(f"Client {client.client_idx} gets rate {client.rate} with epsilon {client.controller_epsilon}") 
+        Logger.log(f"Client {client.client_idx} gets rate {client.rate} with epsilon {epsilon}") 
         
         return client.rate, client.goal, intrinsic_reward, extrinsic_reward
         

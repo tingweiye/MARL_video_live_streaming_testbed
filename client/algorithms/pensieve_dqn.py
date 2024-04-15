@@ -68,6 +68,7 @@ STALLION_LOG_FILE = './results/stallion/log'
 TEST_LOG_FOLDER = './test_results/'
 TRAIN_TRACES = './data/cooked_traces/'
 
+MODEL_PATH = 'models/pensieve/pensieve_test_0.model'
 CRITIC_MODEL= './results/critic.pt'
 ACTOR_MODEL = './results/actor.pt'
 CRITIC_MODEL = None
@@ -133,6 +134,10 @@ class pensieve_solver:
             ent_coeff = 0.98
             epsilon = 0.9
             # memory = ReplayMemory()
+            if not train:
+                self.agent.load_controller_model(MODEL_PATH)
+                Logger.log("Pensieve model loaded")
+                epsilon = 0
 
             for epoch in range(TOTALEPOCH):
                 rate, rate_idx = self.select_rate(state, epsilon)
