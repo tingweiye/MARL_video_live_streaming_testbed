@@ -215,3 +215,6 @@ class pensieve_solver:
                     print("Start training...")
                     threading.Thread(target=self.train_local_controller).start()
                     # self.train_local_controller()
+                    
+                if true_bandwidth < 0:
+                    return
