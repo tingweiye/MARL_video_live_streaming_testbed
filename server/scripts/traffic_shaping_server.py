@@ -65,7 +65,7 @@ class traffic_shaper:
                 self.set_bandwidth(self.interface, rate, rtt)
                 Logger.log(f"Bandwitdh set to {rate}, RTT set to {rtt}")
                 self.queue.put(r)
-                time.sleep(self.get_random_duration())
+                time.sleep(self.duration)
         subprocess.call(['sudo', 'tc', 'qdisc', 'del', 'dev', self.interface, 'root'])
         
     def test_shaping(self):

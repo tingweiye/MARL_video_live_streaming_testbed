@@ -61,12 +61,12 @@ class client_info:
         self.last_state = np.zeros((S_INFO,S_LEN))
         self.last_meta_state = np.zeros((1, S_META))
         
-        self.reach_reward = {2.5:65,
-                             4.0:60,
-                             5.0:60,
-                             6.5:50,
-                             8.0:50,
-                             10.0:50}
+        self.reach_reward = {2.5:35,
+                             4.0:30,
+                             5.0:30,
+                             6.5:30,
+                             8.0:25,
+                             10.0:25}
         
     def getLen(self):
         return len(self.rate_his)
