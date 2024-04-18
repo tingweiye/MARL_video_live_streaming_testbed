@@ -45,9 +45,15 @@ async def download_video(request, video_filename):
     client_freeze = float(request.META.get('HTTP_FREEZE'))
     client_latency = float(request.META.get('HTTP_LATENCY'))
     client_jump = float(request.META.get('HTTP_JUMP'))
-    
     algo = request.META.get('HTTP_ALGO')
     
+    ready = server.check_avaliability(request_gop)
+
+    if not ready:
+        response = HttpResponse(f"Server segment not ready")
+        Logger.log(f"Requested client: {client_idx}, gop: {request_gop} not ready")
+        response['ready'] = 0
+        return response
     t1 = time.time()
     server_time = server.get_server_time()
     info = {"rate": request_rate,
@@ -60,6 +66,8 @@ async def download_video(request, video_filename):
             "startTime":server_time}
     
     # update information of the client
+    
+        
     server.update_client(client_idx, info)
     
     # HMARL rate selection
@@ -95,6 +103,7 @@ async def download_video(request, video_filename):
         response['PFair'] = propotional_fairness
         response['MFair'] = maxmin_fairness
         response['Qoe'] = client_qoe
+        response['ready'] = 1
         if algo == "MARL":
             instruction, fair_bw, reward = server.marl_solve(client_idx)
             response['Instruction'] = instruction

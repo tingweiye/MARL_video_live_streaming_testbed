@@ -12,6 +12,17 @@ sys.path.append("..")
 from utils.utils import Logger, delete_files_in_folder
 from utils.config import Config
 
+# class ServerSingleton:
+#     _instance = None
+
+#     def __new__(cls, *args, **kwargs):
+#         if not cls._instance:
+#             cls._instance = super(ServerSingleton, cls).__new__(cls, *args, **kwargs)
+#         return cls._instance
+
+#     def __init__(self):
+#         self.server = Server()
+
 class Server:
     
     def __init__(self, algo="PESUDO", use_trace=True, is_train=True):
@@ -90,6 +101,12 @@ class Server:
         
     def jump_suggestion(self):
         return max(0, self.encoder.check_range()[1] - self.suggestion_diff)
+    
+    def check_avaliability(self, request_gop):
+        if request_gop > self.encoder.check_range()[1]:
+            return False
+        else:
+            return True
     
     def process_request(self, client_idx, request_gop, request_rate):
         # wait until the gop is generated

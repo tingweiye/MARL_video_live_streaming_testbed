@@ -4,7 +4,7 @@ conda activate marl
 # Initialize counter
 counter=0
 
-while [ $counter -lt 50 ]; do
+while [ $counter -lt 1 ]; do
     # Execute the Python script with counter as parameter
     echo $counter > .control
     gunicorn routing:application -c gunicorn_config.py

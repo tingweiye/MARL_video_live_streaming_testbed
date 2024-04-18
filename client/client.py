@@ -134,10 +134,21 @@ class Client:
         timer = threading.Timer(Config.INITIAL_LATENCY, self.__start_play)
         timer.start()
         while (self.base_time < 0):
-            download_start = time.time()
-            self.__request_video_seg(Config.INITIAL_RATE)
-            download_end = time.time()
-            self.download_time = download_end - download_start
+            ready = False
+            # get the next gop and calculate the download time
+            # time.sleep(6) # simulate congestion
+            
+            while ready == 0:
+                download_start = time.time()
+                info = self.__request_video_seg(Config.INITIAL_RATE)
+                download_end = time.time()
+                self.download_time = download_end - download_start
+                
+                ready = info["ready"]
+                if not ready:
+                    time.sleep(0.2)
+            # self.__request_video_seg(Config.INITIAL_RATE, True)
+            
             # don't record except for bw
             self.bw = Config.INITIAL_RATE / self.download_time
                 
@@ -274,6 +285,10 @@ class Client:
             intrinsic_reward, extrinsic_reward = -1, -1
             goal = 2.5
             
+            ready = bool(response.headers.get('Server-Time'))
+            if not ready:
+                return {"ready": False}
+            print("hello")
             # Read and save the downloaded content to a local file
             # Get server time and calculate
             server_time = float(response.headers.get('Server-Time'))
@@ -306,7 +321,8 @@ class Client:
             
             # print(f"Request and response: {t2 - t1}, write: {t4 - t3}, logic: {t3 - t2}")
             # self.connection.close()
-            info = {"suggestion":suggestion,
+            info = {"ready": True,
+                    "suggestion":suggestion,
                     "prepare":prepare, 
                     "passive_jump":passive_jump, 
                     "server_time":server_time, 
@@ -333,10 +349,22 @@ class Client:
     def download(self, rate, speed=1):
         print("   ")
         
+        ready = False
         # get the next gop and calculate the download time
-        download_start = time.time()
+        step_start = time.time()
         # time.sleep(6) # simulate congestion
-        info = self.__request_video_seg(rate)
+        
+        while ready == 0:
+            download_start = time.time()
+            info = self.__request_video_seg(rate)
+            download_end = time.time()
+            self.download_time = download_end - download_start
+            ready = info["ready"]
+            if not ready:
+                wait = self.get_buffer_size()*0.25
+                print(f"Not ready, wait for {wait} sec")
+                time.sleep(wait)
+        
         suggestion = info["suggestion"]
         prepare = info["prepare"]
         passive_jump = info["passive_jump"]
@@ -350,8 +378,8 @@ class Client:
         extrinsic_reward = info["extrinsic_reward"]
         true_bandwidth = info["true_bandwidth"]
         # print(download_rate)
-        download_end = time.time()
-        self.download_time = download_end - download_start - prepare ######## important!!!!!!
+        step_end = time.time()
+        #  - prepare ######## important!!!!!!
         
         ######### get freeze time #########
         # release block for the player to play downloaded segments
@@ -360,7 +388,7 @@ class Client:
         self.freeze_avialable.wait()
         
         ######### get idle time #########
-        self.idle = prepare
+        self.idle = step_end - step_start - self.download_time
         # wait until buffer is not full
         full_start = time.time()
         if self.buffer.full():
