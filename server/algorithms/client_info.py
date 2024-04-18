@@ -177,7 +177,7 @@ class client_info:
         else:
             reward += QUALTITY_COEF * log_rate
                                        
-        if steps_taken >= 5: # If not following goal and causes freeze, give pentalty
+        if steps_taken >= 5 and self.goal < self.rate: # If not following goal and causes freeze, give pentalty
             reward -= QOE_FREEZE_PENALTY * max(0.75, self.freeze) if self.freeze > 0.001 else 0
         
         return reward

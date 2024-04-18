@@ -201,6 +201,7 @@ class hmarl_server(pesudo_server):
         client.episode_step += 1
         client.hmarl_step += 1
         state_goal = client.get_state_goal()
+        # print(state_goal)
         
         self.update_local_lock.acquire()
         if self.train_local:
