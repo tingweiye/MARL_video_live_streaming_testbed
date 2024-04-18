@@ -361,7 +361,7 @@ class Client:
             self.download_time = download_end - download_start
             ready = info["ready"]
             if not ready:
-                wait = self.get_buffer_size()*0.25
+                wait = self.get_buffer_size()*Config.IDLE_WAIT_IDX
                 print(f"Not ready, wait for {wait} sec")
                 time.sleep(wait)
         

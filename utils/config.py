@@ -16,6 +16,7 @@ class Config:
     INITIAL_LATENCY = 3
     CLIENT_MAX_BUFFER_LEN = 5
     MAX_HISTORY = 600
+    IDLE_WAIT_IDX = 0.2
     
     # server
     ENCODING_TIME = 1
