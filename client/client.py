@@ -288,7 +288,6 @@ class Client:
             ready = bool(response.headers.get('Server-Time'))
             if not ready:
                 return {"ready": False}
-            print("hello")
             # Read and save the downloaded content to a local file
             # Get server time and calculate
             server_time = float(response.headers.get('Server-Time'))
