@@ -85,7 +85,6 @@ def get_allocation(bottlenecks, weights, totalBw, client_idx):
             nonlocal result
             if score > maxScore:
                 maxScore = score
-                print(score, buffer)
                 result = buffer.copy()
             return
         client_idx = clients[client]
