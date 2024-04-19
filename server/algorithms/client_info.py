@@ -136,7 +136,7 @@ class client_info:
         self.state[0, -1] = self.rate / MAX_RATE
         self.state[1, -1] = self.get_smooth_bw() / 10
         self.state[2, -1] = (self.buffer-1) / Config.CLIENT_MAX_BUFFER_LEN
-        self.state[3, -1] = self.idle
+        self.state[3, -1] = self.idle / 1.5
 
     def epsilon_decay(self):
         self.controller_epsilon *= EPSILON_DECAY
