@@ -2,6 +2,7 @@ from algorithms.client_info import client_info
 from utils.config import Config
 import threading
 import numpy as np
+import time
 
 class pesudo_server:
     
@@ -11,6 +12,7 @@ class pesudo_server:
         self.assigned_rate = {}
         self.num_agent = 0
         self.sum_weights = 0
+        self.esTotalBw = 5
         
         self.update_meta_lock = threading.Lock()
         self.update_local_lock = threading.Lock()
@@ -19,6 +21,7 @@ class pesudo_server:
         self.update_local_lock.acquire()
         info = client_info(idx, weight)
         self.client_list[idx] = info
+        self.assigned_rate[idx] = Config.MID_RATE
         self.num_agent += 1
         self.sum_weights += weight
         print(self.sum_weights)
@@ -28,6 +31,7 @@ class pesudo_server:
         self.update_local_lock.acquire()
         self.sum_weights -= self.client_list[idx].weight
         self.client_list.pop(idx)
+        self.assigned_rate.pop(idx)
         self.num_agent -= 1
         self.update_local_lock.release()
         
@@ -60,3 +64,52 @@ class pesudo_server:
     
     def get_client_qoe(self, idx):
         return self.client_list[idx].get_qoe()
+    
+    def periodic_estimation(self):
+        while(True):
+            t1 = time.time()
+            self.server_allocation_estimation()
+            t2 = time.time()
+            # print("????????", t2 - t1)
+            time.sleep(0.95)
+    
+    def server_allocation_estimation(self):
+        esUpper, esLower = 0, 0
+        bottlenecks = {}
+        weights = {}
+        # last_rates = []
+        for idx, c in self.client_list.items():
+            esUpper += c.get_smooth_bw()
+            esLower += c.get_smooth_bw_idle()
+            bottlenecks[idx] = c.get_bottleneck()[0]
+            weights[idx] = c.weight
+            # last_rates.append(c.rate)
+        self.esTotalBW = Config.UPPER_PORTION * esUpper + (1 - Config.UPPER_PORTION) * esLower
+        print(f"ESTotalBW: {self.esTotalBW:.3f}, {esUpper}, {esLower}")
+        self.assigned_rate = self.get_allocation_all(bottlenecks=bottlenecks, weights=weights, totalBw=self.esTotalBW)
+
+    def get_allocation_all(self, bottlenecks, weights, totalBw):
+        buffer = {key:2.5 for key, _ in weights.items()}
+        result = {key:2.5 for key, _ in weights.items()}
+        clients = [key for key, _ in weights.items()]
+        maxScore = 0
+
+        def backtrace(bottlenecks, weights, totalBw, client, score):
+            if client == len(weights):
+                nonlocal maxScore
+                nonlocal result
+                if score > maxScore:
+                    maxScore = score
+                    print(score, buffer)
+                    result = buffer.copy()
+                return
+            client_idx = clients[client]
+            for r in Config.REVERSED_BITRATE:
+                if r <= bottlenecks[client_idx] and r <= totalBw:
+                    buffer[client_idx] = r
+                    fair_contribution = weights[client_idx] * np.log(r)
+                    backtrace(bottlenecks, weights, totalBw-r, client+1, score + fair_contribution)
+                else:
+                    continue
+        backtrace(bottlenecks, weights, totalBw, 0, 0)
+        return result

@@ -8,12 +8,14 @@ class Config:
     REVERSED_BITRATE = [10.0, 8.0, 6.5, 5.0, 4.0, 2.5]
     SPEED = [0.9, 1.0, 1.1]
     MAX_RATE = BITRATE[-1]
+    MIN_RATE = BITRATE[0]
+    MID_RATE = BITRATE[int(len(BITRATE) / 2 - 1)]
     FPS = 24
     FRAME_DURATION = 1 / 24
     
     # clients
     INITIAL_DUMMY_LATENCY = 3.0
-    INITIAL_RATE = BITRATE[int(len(BITRATE) / 2)]
+    INITIAL_RATE = MID_RATE
     INITIAL_LATENCY = 3
     CLIENT_MAX_BUFFER_LEN = 5
     MAX_HISTORY = 600

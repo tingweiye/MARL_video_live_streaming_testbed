@@ -15,7 +15,7 @@ INITIAL_RATE = VIDEO_BIT_RATE[int(len(VIDEO_BIT_RATE) // 2)]
 MAX_EPSILON_C = 0.9
 MAX_EPSILON_M = 0.9
 MIN_EPSILON = 0.01
-EPSILON_DECAY = 0.9995
+EPSILON_DECAY = 0.995
 
 QUALTITY_COEF = 5
 FREEZE_PENALTY = 100
@@ -141,9 +141,6 @@ class client_info:
     def epsilon_decay(self):
         self.controller_epsilon *= EPSILON_DECAY
         self.meta_controller_epsilon *= EPSILON_DECAY
-        
-    def goal_reached(self):
-        return self.goal == self.rate
     
     def get_state_goal(self):
         self.state[4, -1] = self.goal / MAX_RATE
@@ -158,7 +155,7 @@ class client_info:
                 - QOE_SMOOTH_PENALTY * np.abs(log_rate - log_last_rate)
         return QoE
     
-    def get_intrinsic_reward(self, done, steps_taken, reward_file=""):
+    def get_intrinsic_reward(self):
         # -- log scale reward --
         log_rate = np.log(self.rate)
         log_goal = np.log(self.goal)
@@ -170,15 +167,15 @@ class client_info:
                 - JUMP_PENALTY   * self.jump \
                 - SMOOTH_PENALTY * np.abs(log_rate - log_last_rate)
                 
-        if self.goal_reached():
+        if self.goal == self.rate:
             reward += self.reach_reward[self.goal]
         elif self.goal < self.rate:
             reward -= QUALTITY_COEF * (log_rate - log_goal)
         else:
             reward += QUALTITY_COEF * log_rate
                                        
-        if steps_taken >= 5 and self.goal < self.rate: # If not following goal and causes freeze, give pentalty
-            reward -= QOE_FREEZE_PENALTY * max(0.75, self.freeze) if self.freeze > 0.001 else 0
+        # if steps_taken >= 5 and self.goal < self.rate: # If not following goal and causes freeze, give pentalty
+        #     reward -= QOE_FREEZE_PENALTY * max(0.75, self.freeze) if self.freeze > 0.001 else 0
         
         return reward
     

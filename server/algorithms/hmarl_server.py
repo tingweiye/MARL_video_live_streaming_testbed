@@ -19,19 +19,21 @@ MAX_RATE = float(np.max(VIDEO_BIT_RATE))
 
 MODEL_PATH = 'models/hmarl/local/ddqn_test_0.model'
 
-MAX_EP_LEN = 10
-TRAIN_START_META = 2000
-TRAIN_START_LOCAL = 5000
-TRAIN_INTERVAL = 100
-TRAIN_TIMES = 70
-MODEL_SAVE_INTERVAL = 5000
-META_MODEL_SAVE_INTERVAL = 2000
 # MAX_EP_LEN = 10
-# TRAIN_START_META = 1
-# TRAIN_START_LOCAL = 1
-# TRAIN_INTERVAL = 15
-# TRAIN_TIMES = 50
-# MODEL_SAVE_INTERVAL = 1
+# TRAIN_START_META = 2000
+# TRAIN_START_LOCAL = 5000
+# TRAIN_INTERVAL = 100
+# TRAIN_TIMES = 70
+# MODEL_SAVE_INTERVAL = 5000
+# META_MODEL_SAVE_INTERVAL = 2000
+# DECAY_INTERVAL = 10
+MAX_EP_LEN = 10
+TRAIN_START_META = 1
+TRAIN_START_LOCAL = 1
+TRAIN_INTERVAL = 15
+TRAIN_TIMES = 1
+MODEL_SAVE_INTERVAL = 1
+DECAY_INTERVAL = 1
 
 
 class hmarl_server(pesudo_server):
@@ -55,6 +57,9 @@ class hmarl_server(pesudo_server):
         
         if not train_local:
             self.load_model_local(MODEL_PATH)
+            
+        self.esThread = threading.Thread(target=self.periodic_estimation)
+        self.esThread.start()
     
     def load_model_local(self, file_path):
         self.agent.load_controller_model(file_path)
@@ -94,9 +99,6 @@ class hmarl_server(pesudo_server):
         action = self.agent.select_action(torch.from_numpy(state_goal).unsqueeze(0).type(dtype), epilson=epsilon)
         self.agent.local_count += 1
         return VIDEO_BIT_RATE[action.item()], action
-    
-    def periodic_estimation(self):
-        pass
     
     def estimate_total_bw(self):
         esUpper, esLower = 0, 0
@@ -160,55 +162,56 @@ class hmarl_server(pesudo_server):
     def solve(self, idx):
         client = self.client_list[idx]
         done = False
-        end = False
         # print(client.client_idx, client.controller_epsilon, client.meta_controller_epsilon)
-        steps_taken = client.episode_step if client.episode_step != -1 else 0
+        # steps_taken = client.episode_step if client.episode_step != -1 else 0
         # Goal reached, max steps reached or client started
-        if client.goal_reached() or steps_taken == MAX_EP_LEN or client.hmarl_step == -1:  
-            # Select goals
-            # Initialize steps
-            self.update_meta_lock.acquire()
-            done = True
-            if not client.goal_reached() and steps_taken == MAX_EP_LEN:
-                end = True
-            if client.hmarl_step == -1:
-                done = False
-                client.hmarl_step = 0
-            # Get meta state
-            meta_state = self.get_meta_state(client, steps_taken)
-            # Push data to meta controller
-            if self.train_meta and client.hmarl_step > 0:
-                F = client.accumulative_extrinsic_reawad / steps_taken
-                print(f"Client{client.client_idx} gets Reward F: {F}")
-                self.agent.meta_replay_memory.push(client.last_meta_state, client.goal_idx, meta_state, F, False)
-            client.last_meta_state = meta_state.copy()
+        # if steps_taken == MAX_EP_LEN or client.hmarl_step == -1:  
+        #     # Select goals
+        #     # Initialize steps
+        #     self.update_meta_lock.acquire()
+        #     done = True
+        #     if client.hmarl_step == -1:
+        #         done = False
+        #         client.hmarl_step = 0
+        #     # Get meta state
+        #     meta_state = self.get_meta_state(client, steps_taken)
+        #     # Push data to meta controller
+        #     if self.train_meta and client.hmarl_step > 0:
+        #         F = client.accumulative_extrinsic_reawad / steps_taken
+        #         print(f"Client{client.client_idx} gets Reward F: {F}")
+        #         self.agent.meta_replay_memory.push(client.last_meta_state, client.goal_idx, meta_state, F, False)
+        #     client.last_meta_state = meta_state.copy()
             
-            client.episode_step = 0
-            client.accumulative_extrinsic_reawad = 0
+        #     client.episode_step = 0
+        #     client.accumulative_extrinsic_reawad = 0
             
             
-            meta_epsilon = client.meta_controller_epsilon
-            # client.goal, client.goal_idx = self.select_goal(meta_state, meta_epsilon)
-            # t4 = time.time()
-            client.goal = self.server_goal_estimation(client)
-            # t5 = time.time()
-            # print("!!!!!!!!!", t5 - t4)
-            Logger.log(f"Client {client.client_idx} gets goal {client.goal} with epsilon {client.meta_controller_epsilon}")
+        #     meta_epsilon = client.meta_controller_epsilon
+        #     # client.goal, client.goal_idx = self.select_goal(meta_state, meta_epsilon)
+        #     # t4 = time.time()
+        #     client.goal = self.server_goal_estimation(client)
+        #     # t5 = time.time()
+        #     # print("!!!!!!!!!", t5 - t4)
+        #     Logger.log(f"Client {client.client_idx} gets goal {client.goal} with epsilon {client.meta_controller_epsilon}")
             
-            # Train meta controller
-            self.train_meta_controller()
-            if self.train_meta and self.agent.meta_count >= TRAIN_START_META and self.agent.meta_count % META_MODEL_SAVE_INTERVAL == 0:
-                Logger.log("Meta controller model saved")
-                self.agent.save_meta_controller_model(self.agent.meta_count)
-            self.update_meta_lock.release()
+        #     # Train meta controller
+        #     self.train_meta_controller()
+        #     if self.train_meta and self.agent.meta_count >= TRAIN_START_META and self.agent.meta_count % META_MODEL_SAVE_INTERVAL == 0:
+        #         Logger.log("Meta controller model saved")
+        #         self.agent.save_meta_controller_model(self.agent.meta_count)
+        #     self.update_meta_lock.release()
+        if client.hmarl_step == -1:
+            client.hmarl_step += 1
+        if self.train_local and self.agent.local_count >= TRAIN_START_LOCAL and self.agent.local_count % DECAY_INTERVAL == 0:
             client.epsilon_decay()
-            
+        client.goal = self.server_goal_estimation(client)
+        # client.goal = self.assigned_rate[client.client_idx]
             # Logger.log("Controller model loaded")
             # self.agent.load_controller_model(client.hmarl_step)
             # self.agent.load_meta_controller_model(client.hmarl_step)
             
         # Get extrinsic and intrinsic rewards
-        intrinsic_reward = client.get_intrinsic_reward(end, steps_taken)
+        intrinsic_reward = client.get_intrinsic_reward()
         client.last_rate = client.rate
         extrinsic_reward = self.get_extrinsic_reward(client)
         client.accumulative_extrinsic_reawad += extrinsic_reward
@@ -217,6 +220,7 @@ class hmarl_server(pesudo_server):
         client.hmarl_step += 1
         state_goal = client.get_state_goal()
         # print(state_goal)
+        
         
         self.update_local_lock.acquire()
         if self.train_local:
@@ -234,11 +238,12 @@ class hmarl_server(pesudo_server):
                 self.agent.save_controller_model(self.agent.local_count)
         # Select new rate
         epsilon = client.controller_epsilon if self.train_local else 0
+        
         client.rate, client.rate_idx = self.select_rate(state_goal, epsilon)
         # client.rate = client.goal
         # client.rate = 4.0
         self.update_local_lock.release()
-        Logger.log(f"Client {client.client_idx} gets rate {client.rate} with epsilon {epsilon}") 
+        Logger.log(f"Client {client.client_idx} gets goal {client.goal} and rate {client.rate} with epsilon {epsilon}") 
         
         return client.rate, client.goal, intrinsic_reward, extrinsic_reward, self.estimate_total_bw()
         
