@@ -73,7 +73,7 @@ class client_info:
         
     def get_smooth_bw(self):
         # return self.bw_his.avg()
-        return self.bw_his.get_last_mean(4)
+        return self.bw_his.get_last_mean(6)
     
     def get_smooth_bw_idle(self):
         return self.bw_idle_his.avg()

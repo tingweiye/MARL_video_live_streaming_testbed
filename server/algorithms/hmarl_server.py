@@ -95,6 +95,17 @@ class hmarl_server(pesudo_server):
         self.agent.local_count += 1
         return VIDEO_BIT_RATE[action.item()], action
     
+    def periodic_estimation(self):
+        pass
+    
+    def estimate_total_bw(self):
+        esUpper, esLower = 0, 0
+        for _, c in self.client_list.items():
+            esUpper += c.get_smooth_bw()
+            esLower += c.get_smooth_bw_idle()
+        esTotalBW = Config.UPPER_PORTION * esUpper + (1 - Config.UPPER_PORTION) * esLower
+        return esTotalBW
+    
     def server_goal_estimation(self, client:client_info):
         # a = np.array([x.get_smooth_bw_idle() for _, x in self.client_list.items()])
         esUpper, esLower = 0, 0
@@ -128,7 +139,6 @@ class hmarl_server(pesudo_server):
         #     if VIDEO_BIT_RATE[i] < target_bw:
         #         goal = VIDEO_BIT_RATE[i]
         #         break
-        
         # return goal
     
     def train_meta_controller(self):
@@ -230,7 +240,7 @@ class hmarl_server(pesudo_server):
         self.update_local_lock.release()
         Logger.log(f"Client {client.client_idx} gets rate {client.rate} with epsilon {epsilon}") 
         
-        return client.rate, client.goal, intrinsic_reward, extrinsic_reward
+        return client.rate, client.goal, intrinsic_reward, extrinsic_reward, self.estimate_total_bw()
         
     
     

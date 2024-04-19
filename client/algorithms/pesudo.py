@@ -53,6 +53,7 @@ class pesudo_solver:
                 propotional_fairness = info["propotional_fairness"]
                 maxmin_fairness = info["maxmin_fairness"]
                 client_qoe = info["client_qoe"]
+                esTotal = info["esTotal"]
                 
                 time_stamp = server_time
                 last_rate = rate
@@ -75,7 +76,8 @@ class pesudo_solver:
                             str(true_bandwidth) + '\t' +
                             str(propotional_fairness) + '\t' +
                             str(maxmin_fairness) + '\t' +
-                            str(client_qoe) + '\n')
+                            str(client_qoe) + '\t' + 
+                            str(esTotal) + '\n')
                 log_file.flush()
                 
                 if true_bandwidth < 0:

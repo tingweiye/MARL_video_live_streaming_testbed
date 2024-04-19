@@ -283,6 +283,7 @@ class Client:
             response.raise_for_status()
             download_rate, instruction, exReward, fair_bw = rate, -1, -1, -1
             intrinsic_reward, extrinsic_reward = -1, -1
+            esTotal = 0
             goal = 2.5
             
             ready = bool(response.headers.get('Server-Time'))
@@ -307,6 +308,7 @@ class Client:
                 goal = float(response.headers.get('Goal'))
                 intrinsic_reward = float(response.headers.get('Reward'))
                 extrinsic_reward = float(response.headers.get('ExReward'))
+                esTotal = float(response.headers.get('Esbw'))
 
             passive_jump = suggestion - self.next_gop - 1
             self.last_gop = suggestion - 1
@@ -335,7 +337,8 @@ class Client:
                     "true_bandwidth": true_bandwidth,
                     "propotional_fairness": propotional_fairness,
                     "maxmin_fairness": maxmin_fairness,
-                    "client_qoe": client_qoe}
+                    "client_qoe": client_qoe,
+                    "esTotal": esTotal}
             # return suggestion, prepare, passive_jump, server_time, instruction, fair_bw, exReward, download_rate, intrinsic_reward, extrinsic_reward
             return info
         except:
@@ -377,6 +380,7 @@ class Client:
         intrinsic_reward = info["intrinsic_reward"]
         extrinsic_reward = info["extrinsic_reward"]
         true_bandwidth = info["true_bandwidth"]
+        # esTotal = info["esTotal"]
         # print(download_rate)
         step_end = time.time()
         #  - prepare ######## important!!!!!!
@@ -445,7 +449,8 @@ class Client:
             "true_bandwidth": true_bandwidth,
             "propotional_fairness": info["propotional_fairness"],
             "maxmin_fairness": info["maxmin_fairness"],
-            "client_qoe": info["client_qoe"]
+            "client_qoe": info["client_qoe"],
+            "esTotal": info["esTotal"]
         }
         return return_info
         

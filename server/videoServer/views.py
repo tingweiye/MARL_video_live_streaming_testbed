@@ -72,7 +72,7 @@ async def download_video(request, video_filename):
     
     # HMARL rate selection
     if algo == "HMARL":
-        request_rate, goal, intrinsic_reward, extrinsic_reward = server.hmarl_solve(client_idx)
+        request_rate, goal, intrinsic_reward, extrinsic_reward, esTotal = server.hmarl_solve(client_idx)
     
     propotional_fairness = server.get_propotional_fairness()
     maxmin_fairness = server.get_maxmin_fairness()
@@ -113,6 +113,7 @@ async def download_video(request, video_filename):
             response['Reward'] = intrinsic_reward
             response['ExReward'] = extrinsic_reward
             response["Goal"] = goal
+            response['Esbw'] = esTotal
         
         if request_gop + 1 != suggestion:
             Logger.log(f"Client {client_idx} latency too high, suggested downloading {suggestion - 1}")

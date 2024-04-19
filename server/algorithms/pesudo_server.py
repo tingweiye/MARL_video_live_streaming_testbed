@@ -8,6 +8,7 @@ class pesudo_server:
     def __init__(self):
         
         self.client_list = {}
+        self.assigned_rate = {}
         self.num_agent = 0
         self.sum_weights = 0
         
