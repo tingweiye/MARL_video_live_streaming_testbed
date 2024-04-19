@@ -18,7 +18,7 @@ MIN_EPSILON = 0.01
 EPSILON_DECAY = 0.9995
 
 QUALTITY_COEF = 5
-FREEZE_PENALTY = 70
+FREEZE_PENALTY = 100
 LATENCY_PENALTY = 1
 JUMP_PENALTY = 3
 SMOOTH_PENALTY = 8
@@ -64,9 +64,9 @@ class client_info:
         self.reach_reward = {2.5:35,
                              4.0:30,
                              5.0:30,
-                             6.5:30,
+                             6.5:25,
                              8.0:25,
-                             10.0:25}
+                             10.0:20}
         
     def getLen(self):
         return len(self.rate_his)
@@ -165,7 +165,7 @@ class client_info:
         log_last_rate = np.log(self.last_rate)
         
         reward  = QUALTITY_COEF  * log_rate \
-                - (FREEZE_PENALTY * max(0.75, self.freeze) if self.freeze > 0.001 else 0) \
+                - (FREEZE_PENALTY * max(0.9, self.freeze) if self.freeze > 0.001 else 0) \
                 - LATENCY_PENALTY* self.latency \
                 - JUMP_PENALTY   * self.jump \
                 - SMOOTH_PENALTY * np.abs(log_rate - log_last_rate)

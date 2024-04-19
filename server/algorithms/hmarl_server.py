@@ -9,7 +9,7 @@ from algorithms.client_info import client_info
 from algorithms.components.hd3qn import hDQN, OptimizerSpec
 sys.path.append("..")
 from utils.config import Config
-from utils.utils import Logger
+from utils.utils import Logger, get_allocation
 from algorithms.pesudo_server import pesudo_server
 
 dtype = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTensor
@@ -97,37 +97,35 @@ class hmarl_server(pesudo_server):
     
     def server_goal_estimation(self, client:client_info):
         # a = np.array([x.get_smooth_bw_idle() for _, x in self.client_list.items()])
-        b = np.array([x.get_smooth_bw() for _, x in self.client_list.items()])
-        esTotalBW = b.sum()
-        print(f"ESTotalBW: {esTotalBW:.3f}, {b}")
-        
-        target_bw = 0
-        sum_weights = self.sum_weights
-        bottleneck = 0
-        fair_bw = 0
-        # print("++++++++++++++")
-        # print(b, esTotalBW)
-        # t1 = time.time()
+        esTotalBW = 0
+        bottlenecks = []
+        weights = []
         for _, c in self.client_list.items():
-            bottleneck, std = c.get_bottleneck()
-            weight = c.weight
-            fair_bw =  (weight / sum_weights) * esTotalBW
-            target_bw = min(fair_bw, bottleneck)
-            if c.client_idx == client.client_idx:
-                break
-            sum_weights -= weight
-            esTotalBW -= target_bw
-        # t2 = time.time()
-        # print(t2 - t1)
-        # print(bottleneck, std + bottleneck, fair_bw)
-        # print("++++++++++++++")
-        goal = VIDEO_BIT_RATE[0]
-        for i in reversed(range(len(VIDEO_BIT_RATE))):
-            if VIDEO_BIT_RATE[i] < target_bw:
-                goal = VIDEO_BIT_RATE[i]
-                break
+            esTotalBW += c.get_smooth_bw()
+            bottlenecks.append(c.get_bottleneck()[0])
+            weights.append(c.weight)
+        print(f"ESTotalBW: {esTotalBW:.3f}")
+        return get_allocation(bottlenecks=bottlenecks, weights=weights, totalBw=esTotalBW, client_idx=client.client_idx)
+        # target_bw = 0
+        # sum_weights = self.sum_weights
+        # bottleneck = 0
+        # fair_bw = 0
+        # for _, c in self.client_list.items():
+        #     bottleneck, std = c.get_bottleneck()
+        #     weight = c.weight
+        #     fair_bw =  (weight / sum_weights) * esTotalBW
+        #     target_bw = min(fair_bw, bottleneck)
+        #     if c.client_idx == client.client_idx:
+        #         break
+        #     sum_weights -= weight
+        #     esTotalBW -= target_bw
+        # goal = VIDEO_BIT_RATE[0]
+        # for i in reversed(range(len(VIDEO_BIT_RATE))):
+        #     if VIDEO_BIT_RATE[i] < target_bw:
+        #         goal = VIDEO_BIT_RATE[i]
+        #         break
         
-        return goal
+        # return goal
     
     def train_meta_controller(self):
         if self.train_meta and self.agent.meta_count >= TRAIN_START_META and self.agent.meta_count % TRAIN_INTERVAL == 0:
@@ -177,7 +175,10 @@ class hmarl_server(pesudo_server):
             
             meta_epsilon = client.meta_controller_epsilon
             # client.goal, client.goal_idx = self.select_goal(meta_state, meta_epsilon)
+            # t4 = time.time()
             client.goal = self.server_goal_estimation(client)
+            # t5 = time.time()
+            # print("!!!!!!!!!", t5 - t4)
             Logger.log(f"Client {client.client_idx} gets goal {client.goal} with epsilon {client.meta_controller_epsilon}")
             
             # Train meta controller
