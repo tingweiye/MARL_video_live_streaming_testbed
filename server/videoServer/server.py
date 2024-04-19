@@ -45,7 +45,7 @@ class Server:
         Logger.log(f"Using algorithm {algo}")
         
         self.next_idx = 0
-        self.suggestion_diff = 0
+        self.suggestion_diff = 1
         assert self.suggestion_diff >= 0 and self.suggestion_diff < Config.SERVER_MAX_BUFFER_LEN
         # server info
         delete_files_in_folder(os.path.join(os.getcwd(), 'data'))

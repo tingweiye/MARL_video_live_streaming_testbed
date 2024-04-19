@@ -97,15 +97,19 @@ class hmarl_server(pesudo_server):
     
     def server_goal_estimation(self, client:client_info):
         # a = np.array([x.get_smooth_bw_idle() for _, x in self.client_list.items()])
-        esTotalBW = 0
+        esUpper, esLower = 0, 0
         bottlenecks = []
         weights = []
+        last_rates = []
         for _, c in self.client_list.items():
-            esTotalBW += c.get_smooth_bw()
+            esUpper += c.get_smooth_bw()
+            esLower += c.get_smooth_bw_idle()
             bottlenecks.append(c.get_bottleneck()[0])
             weights.append(c.weight)
-        print(f"ESTotalBW: {esTotalBW:.3f}")
-        return get_allocation(bottlenecks=bottlenecks, weights=weights, totalBw=esTotalBW, client_idx=client.client_idx)
+            last_rates.append(c.rate)
+        esTotalBW = Config.UPPER_PORTION * esUpper + (1 - Config.UPPER_PORTION) * esLower
+        print(f"ESTotalBW: {esTotalBW:.3f}, {esUpper}, {esLower}")
+        return get_allocation(bottlenecks=bottlenecks, weights=weights, last_rates=last_rates, totalBw=esTotalBW, client_idx=client.client_idx)
         # target_bw = 0
         # sum_weights = self.sum_weights
         # bottleneck = 0

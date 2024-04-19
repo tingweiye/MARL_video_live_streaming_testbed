@@ -5,6 +5,7 @@ class Config:
     CHUNK_DURATION = 0.2
     CHUNK_IN_SEG = SEG_DURATION/CHUNK_DURATION
     BITRATE = [2.5, 4.0, 5.0, 6.5, 8.0, 10.0]
+    REVERSED_BITRATE = [10.0, 8.0, 6.5, 5.0, 4.0, 2.5]
     SPEED = [0.9, 1.0, 1.1]
     MAX_RATE = BITRATE[-1]
     FPS = 24
@@ -26,5 +27,6 @@ class Config:
     SERVER_ESTIMATION_LEN = 10
     SEG_NUM = 10
     SUGGESTIONS = (-1, 0, 1)
+    UPPER_PORTION = 0.7
     
     VIDEO_FORMAT = ".mp4"
