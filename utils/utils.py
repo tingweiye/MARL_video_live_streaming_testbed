@@ -96,7 +96,7 @@ def get_allocation(bottlenecks, weights, last_rates, totalBw, client_idx):
                 backtrace(bottlenecks, weights, last_rates, totalBw-r, client+1, score + fair_contribution)
                 buffer.pop()
             else:
-                break
+                continue
     backtrace(bottlenecks, weights, last_rates, totalBw, 0, 0)
     return result
 

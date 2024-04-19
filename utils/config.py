@@ -27,6 +27,6 @@ class Config:
     SERVER_ESTIMATION_LEN = 10
     SEG_NUM = 10
     SUGGESTIONS = (-1, 0, 1)
-    UPPER_PORTION = 0.7
+    UPPER_PORTION = 0.8
     
     VIDEO_FORMAT = ".mp4"
