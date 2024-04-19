@@ -59,7 +59,7 @@ class hmarl_server(pesudo_server):
             self.load_model_local(MODEL_PATH)
             
         self.esThread = threading.Thread(target=self.periodic_estimation)
-        self.esThread.start()
+        # self.esThread.start()
     
     def load_model_local(self, file_path):
         self.agent.load_controller_model(file_path)
@@ -111,18 +111,17 @@ class hmarl_server(pesudo_server):
     def server_goal_estimation(self, client:client_info):
         # a = np.array([x.get_smooth_bw_idle() for _, x in self.client_list.items()])
         esUpper, esLower = 0, 0
-        bottlenecks = []
-        weights = []
-        last_rates = []
-        for _, c in self.client_list.items():
+        bottlenecks = {}
+        weights = {}
+        # last_rates = []
+        for idx, c in self.client_list.items():
             esUpper += c.get_smooth_bw()
             esLower += c.get_smooth_bw_idle()
-            bottlenecks.append(c.get_bottleneck()[0])
-            weights.append(c.weight)
-            last_rates.append(c.rate)
+            bottlenecks[idx] = c.get_bottleneck()[0]
+            weights[idx] = c.weight
         esTotalBW = Config.UPPER_PORTION * esUpper + (1 - Config.UPPER_PORTION) * esLower
         print(f"ESTotalBW: {esTotalBW:.3f}, {esUpper}, {esLower}")
-        return get_allocation(bottlenecks=bottlenecks, weights=weights, last_rates=last_rates, totalBw=esTotalBW, client_idx=client.client_idx)
+        return get_allocation(bottlenecks=bottlenecks, weights=weights, totalBw=esTotalBW, client_idx=client.client_idx)
         # target_bw = 0
         # sum_weights = self.sum_weights
         # bottleneck = 0
