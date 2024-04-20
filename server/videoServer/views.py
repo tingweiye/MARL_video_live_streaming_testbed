@@ -34,7 +34,6 @@ async def async_file_iterator(file_content, chunk_size=8192):
 
 # Handle video download action
 async def download_video(request, video_filename):
-    print("   ")
     t0 = time.time()
     client_idx = int(request.META.get('HTTP_IDX'))
     request_gop = int(request.META.get('HTTP_GOP'))
@@ -55,6 +54,7 @@ async def download_video(request, video_filename):
         response['ready'] = 0
         return response
     t1 = time.time()
+    print("   ")
     server_time = server.get_server_time()
     info = {"rate": request_rate,
             "bw": estimated_bw,
