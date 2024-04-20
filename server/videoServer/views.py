@@ -51,7 +51,7 @@ async def download_video(request, video_filename):
 
     if not ready:
         response = HttpResponse(f"Server segment not ready")
-        Logger.log(f"Requested client: {client_idx}, gop: {request_gop} not ready")
+        # Logger.log(f"Requested client: {client_idx}, gop: {request_gop} not ready")
         response['ready'] = 0
         return response
     t1 = time.time()

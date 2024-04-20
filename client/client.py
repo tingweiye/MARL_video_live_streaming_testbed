@@ -366,7 +366,7 @@ class Client:
                 current_buffer = self.get_buffer_size()
                 wait = current_buffer*Config.IDLE_WAIT_IDX if current_buffer > 2.5 else 0.1
                 print(f"Not ready, wait for {wait} sec")
-                time.sleep(wait)
+                time.sleep(0.2)
         
         suggestion = info["suggestion"]
         prepare = info["prepare"]
