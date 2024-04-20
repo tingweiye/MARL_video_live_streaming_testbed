@@ -57,6 +57,8 @@ class Server:
             subprocess_process.start()
             
     def get_true_bandwidth(self):
+        if self.encoder.get_server_time() > 1000000:
+            return -1
         if self.trace_queue.empty():
             return self.true_bandwidth
         else:
