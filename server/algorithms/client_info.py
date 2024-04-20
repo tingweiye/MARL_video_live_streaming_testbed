@@ -66,7 +66,7 @@ class client_info:
                              5.0:30,
                              6.5:25,
                              8.0:20,
-                             10.0:10}
+                             10.0:18}
         
     def getLen(self):
         return len(self.rate_his)
