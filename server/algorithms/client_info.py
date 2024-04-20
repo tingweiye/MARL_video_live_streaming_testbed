@@ -65,8 +65,8 @@ class client_info:
                              4.0:30,
                              5.0:30,
                              6.5:25,
-                             8.0:25,
-                             10.0:20}
+                             8.0:20,
+                             10.0:10}
         
     def getLen(self):
         return len(self.rate_his)
@@ -162,7 +162,7 @@ class client_info:
         log_last_rate = np.log(self.last_rate)
         
         reward  = QUALTITY_COEF  * log_rate \
-                - (FREEZE_PENALTY * max(0.9, self.freeze) if self.freeze > 0.001 else 0) \
+                - (FREEZE_PENALTY * max(1, self.freeze) if self.freeze > 0.001 else 0) \
                 - LATENCY_PENALTY* self.latency \
                 - JUMP_PENALTY   * self.jump \
                 - SMOOTH_PENALTY * np.abs(log_rate - log_last_rate)
@@ -177,6 +177,6 @@ class client_info:
         # if steps_taken >= 5 and self.goal < self.rate: # If not following goal and causes freeze, give pentalty
         #     reward -= QOE_FREEZE_PENALTY * max(0.75, self.freeze) if self.freeze > 0.001 else 0
         
-        return reward
+        return reward / 10
     
     

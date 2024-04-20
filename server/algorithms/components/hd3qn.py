@@ -11,7 +11,7 @@ import torch.optim as optim
 from algorithms.components.replay_memory import ReplayMemory, Transition
 
 USE_CUDA = torch.cuda.is_available()
-GAMMA = 0.75
+GAMMA = 0.8
 dtype = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTensor
 
 """
