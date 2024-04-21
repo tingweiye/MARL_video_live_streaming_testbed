@@ -108,6 +108,7 @@ class client_info:
         return sum / n
     
     def update(self, info):
+        # self.last_rate = self.rate
         if info["rate"] != 0:
             self.rate = info["rate"]
         self.bw = info["bw"]
@@ -160,6 +161,7 @@ class client_info:
         log_rate = np.log(self.rate)
         log_goal = np.log(self.goal)
         log_last_rate = np.log(self.last_rate)
+        print(self.rate, self.last_rate)
         
         reward  = QUALTITY_COEF  * log_rate \
                 - (FREEZE_PENALTY * max(1, self.freeze) if self.freeze > 0.001 else 0) \

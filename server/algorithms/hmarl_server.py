@@ -137,12 +137,12 @@ class hmarl_server(pesudo_server):
         #         break
         #     sum_weights -= weight
         #     esTotalBW -= target_bw
-        # goal = VIDEO_BIT_RATE[0]
-        # for i in reversed(range(len(VIDEO_BIT_RATE))):
-        #     if VIDEO_BIT_RATE[i] < target_bw:
-        #         goal = VIDEO_BIT_RATE[i]
-        #         break
-        # return goal
+        goal = VIDEO_BIT_RATE[0]
+        for i in reversed(range(len(VIDEO_BIT_RATE))):
+            if VIDEO_BIT_RATE[i] < target_bw:
+                goal = VIDEO_BIT_RATE[i]
+                break
+        return goal
     
     def train_meta_controller(self):
         if self.train_meta and self.agent.meta_count >= TRAIN_START_META and self.agent.meta_count % TRAIN_INTERVAL == 0:
@@ -220,14 +220,14 @@ class hmarl_server(pesudo_server):
         client.episode_step += 1
         client.hmarl_step += 1
         state_goal = client.get_state_goal()
-        # print(state_goal)
+        print(state_goal)
         
         
         self.update_local_lock.acquire()
         if self.train_local:
             # Push data to local controller
             if client.hmarl_step > 1:
-                self.agent.ctrl_replay_memory.push(client.last_state, client.rate_idx, client.get_state_goal(), intrinsic_reward, False)
+                self.agent.ctrl_replay_memory.push(client.last_state, client.rate_idx, state_goal, intrinsic_reward, False)
             # Train local controller
             if self.agent.local_count >= TRAIN_START_LOCAL and self.agent.local_count % TRAIN_INTERVAL == 0:
                 threading.Thread(target=self.train_local_controller).start()
