@@ -169,9 +169,9 @@ class client_info:
                 - JUMP_PENALTY   * self.jump \
                 - SMOOTH_PENALTY * np.abs(log_rate - log_last_rate)
                 
-        if self.goal == self.rate:
-            reward += self.reach_reward[self.goal]
-        elif self.goal < self.rate:
+        # if self.goal == self.rate:
+        #     reward += self.reach_reward[self.goal]
+        if self.goal < self.rate:
             reward -= QUALTITY_COEF * (log_rate - log_goal)
         else:
             reward += QUALTITY_COEF * log_rate
