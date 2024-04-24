@@ -9,7 +9,7 @@ from algorithms.client_info import client_info
 from algorithms.components.hd3qn import hDQN, OptimizerSpec
 sys.path.append("..")
 from utils.config import Config
-from utils.utils import Logger, get_allocation, get_allocation2
+from utils.utils import Logger, get_allocation, get_allocation0
 from algorithms.pesudo_server import pesudo_server
 
 dtype = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTensor
@@ -123,7 +123,7 @@ class hmarl_server(pesudo_server):
         esTotalBW = Config.UPPER_PORTION * esUpper + (1 - Config.UPPER_PORTION) * esLower
         print(f"ESTotalBW: {esTotalBW:.3f}, {esUpper}, {esLower}")
         # return get_allocation(bottlenecks=bottlenecks, weights=weights, totalBw=esTotalBW, client_idx=client.client_idx)
-        return get_allocation2(bottlenecks=bottlenecks, weights=weights, last_rates=last_rates, totalBw=esTotalBW, client_idx=client.client_idx)
+        return get_allocation0(bottlenecks=bottlenecks, weights=weights, totalBw=esTotalBW, client_idx=client.client_idx)
         # target_bw = 0
         # sum_weights = self.sum_weights
         # bottleneck = 0

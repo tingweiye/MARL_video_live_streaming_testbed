@@ -131,6 +131,69 @@ def get_allocation2(bottlenecks, weights, last_rates, totalBw, client_idx):
                 continue
     backtrace(bottlenecks, weights, last_rates, totalBw, 0, 0, 0)
     return result[client_idx]
+
+def get_allocation3(bottlenecks, weights, last_rates, totalBw, client_idx):
+    buffer = {key:2.5 for key, _ in weights.items()}
+    result = {key:2.5 for key, _ in weights.items()}
+    clients = [key for key, _ in weights.items()]
+    maxScore = -10000
+    maxLogRate = 0
+
+    def backtrace(bottlenecks, weights, last_rates, totalBw, client, score, sumLogRate):
+        if client == len(weights):
+            nonlocal maxScore
+            nonlocal maxLogRate
+            nonlocal result
+            if score > maxScore:
+                print(score, buffer)
+                maxScore = score
+                maxLogRate = sumLogRate
+                result = buffer.copy()
+            if score == maxScore and sumLogRate > maxLogRate:
+                maxLogRate = sumLogRate
+                result = buffer.copy()
+            return
+        client_idx = clients[client]
+        for r in Config.REVERSED_BITRATE:
+            log_last_rate = np.log(last_rates[client_idx])
+            if r < bottlenecks[client_idx] and r <= totalBw:
+                log_rate = np.log(r)
+                buffer[client_idx] = r
+                QoE_pre = log_rate - np.abs(log_rate - log_last_rate)
+                QoE_pre = QoE_pre if QoE_pre > 0 else 0.01
+                fair_contribution = weights[client_idx] * np.log(QoE_pre)
+                # print(r, fair_contribution, log_rate, np.abs(log_rate - log_last_rate))
+                backtrace(bottlenecks, weights, last_rates, totalBw-r, client+1, score + fair_contribution, sumLogRate + weights[client_idx] * np.log(log_rate))
+            else:
+                continue
+    backtrace(bottlenecks, weights, last_rates, totalBw, 0, 0, 0)
+    return result[client_idx]
+
+def get_allocation0(bottlenecks, weights, totalBw, client_idx):
+    buffer = {key:2.5 for key, _ in weights.items()}
+    result = {key:2.5 for key, _ in weights.items()}
+    clients = [key for key, _ in weights.items()]
+    maxScore = -10
+
+    def backtrace(bottlenecks, weights, totalBw, client, score):
+        if client == len(weights):
+            nonlocal maxScore
+            nonlocal result
+            if score > maxScore:
+                maxScore = score
+                print(score, buffer)
+                result = buffer.copy()
+            return
+        client_idx = clients[client]
+        for r in Config.REVERSED_BITRATE:
+            if r <= bottlenecks[client_idx] and r <= totalBw:
+                buffer[client_idx] = r
+                fair_contribution = weights[client_idx] * np.log(np.log(r))
+                backtrace(bottlenecks, weights, totalBw-r, client+1, score + fair_contribution)
+            else:
+                continue
+    backtrace(bottlenecks, weights, totalBw, 0, 0)
+    return result[client_idx]
     
 
 class MovingQueue:
